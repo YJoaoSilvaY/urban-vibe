@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URBAN VIBE | Streetwear Premium</title>
+  <meta name="description" content="URBAN VIBE: moda streetwear masculina, feminina e acessórios. Design minimalista, atitude de rua.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ================= CABEÇALHO ================= -->
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a href="#inicio" class="logo" aria-label="URBAN VIBE - Início">URBAN<span>VIBE</span></a>
+
+      <nav class="nav" id="nav" aria-label="Menu principal">
+        <ul class="nav__list">
+          <li><a href="#inicio" class="nav__link">Início</a></li>
+          <li><a href="#categorias" class="nav__link">Categorias</a></li>
+          <li><a href="#destaques" class="nav__link">Destaques</a></li>
+          <li><a href="#marca" class="nav__link">A Marca</a></li>
+          <li><a href="#contato" class="nav__link">Contato</a></li>
+        </ul>
+      </nav>
+
+      <div class="header__actions">
+        <button class="cart-btn" id="cartOpen" aria-label="Abrir carrinho">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 7h12l1 13H5L6 7z"></path>
+            <path d="M9 7V6a3 3 0 0 1 6 0v1"></path>
+          </svg>
+          <span class="cart-btn__count" id="cartCount">0</span>
+        </button>
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ================= BANNER PRINCIPAL ================= -->
+    <section class="hero" id="inicio">
+      <img class="hero__img" src="https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=1800&q=80" alt="Campanha streetwear URBAN VIBE" fetchpriority="high">
+      <div class="hero__overlay"></div>
+      <div class="container hero__content">
+        <p class="hero__tag">Coleção Outono / Inverno 2026</p>
+        <h1 class="hero__title">VISTA A<br>CIDADE.</h1>
+        <p class="hero__text">Peças de atitude, corte limpo e acabamento premium. Streetwear feito para quem define o próprio ritmo.</p>
+        <div class="hero__buttons">
+          <a href="#destaques" class="btn btn--light">Comprar agora</a>
+          <a href="#marca" class="btn btn--outline">Conhecer a marca</a>
+        </div>
+      </div>
+      <div class="hero__scroll" aria-hidden="true"><span></span></div>
+    </section>
+
+    <!-- ================= FAIXA ================= -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>FRETE GRÁTIS ACIMA DE R$ 299</span><span>•</span>
+        <span>TROCA EM 30 DIAS</span><span>•</span>
+        <span>EDIÇÕES LIMITADAS</span><span>•</span>
+        <span>PARCELE EM ATÉ 6X SEM JUROS</span><span>•</span>
+        <span>FRETE GRÁTIS ACIMA DE R$ 299</span><span>•</span>
+        <span>TROCA EM 30 DIAS</span><span>•</span>
+        <span>EDIÇÕES LIMITADAS</span><span>•</span>
+        <span>PARCELE EM ATÉ 6X SEM JUROS</span><span>•</span>
+      </div>
+    </div>
+
+    <!-- ================= CATEGORIAS ================= -->
+    <section class="section" id="categorias">
+      <div class="container">
+        <div class="section__head reveal">
+          <p class="section__eyebrow">Navegue por</p>
+          <h2 class="section__title">Categorias</h2>
+        </div>
+
+        <div class="categories">
+          <a href="#destaques" class="category reveal" data-filter="masculino">
+            <img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=900&q=80" alt="Coleção masculina" loading="lazy">
+            <div class="category__info">
+              <h3>Masculino</h3>
+              <span>Ver peças →</span>
+            </div>
+          </a>
+          <a href="#destaques" class="category reveal" data-filter="feminino">
+            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80" alt="Coleção feminina" loading="lazy">
+            <div class="category__info">
+              <h3>Feminino</h3>
+              <span>Ver peças →</span>
+            </div>
+          </a>
+          <a href="#destaques" class="category reveal" data-filter="acessorios">
+            <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=900&q=80" alt="Acessórios streetwear" loading="lazy">
+            <div class="category__info">
+              <h3>Acessórios</h3>
+              <span>Ver peças →</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PRODUTOS EM DESTAQUE ================= -->
+    <section class="section section--grey" id="destaques">
+      <div class="container">
+        <div class="section__head reveal">
+          <p class="section__eyebrow">Seleção da semana</p>
+          <h2 class="section__title">Produtos em destaque</h2>
+        </div>
+
+        <div class="filters reveal" role="tablist" aria-label="Filtrar produtos">
+          <button class="filter is-active" data-filter="todos" role="tab" aria-selected="true">Todos</button>
+          <button class="filter" data-filter="masculino" role="tab" aria-selected="false">Masculino</button>
+          <button class="filter" data-filter="feminino" role="tab" aria-selected="false">Feminino</button>
+          <button class="filter" data-filter="acessorios" role="tab" aria-selected="false">Acessórios</button>
+        </div>
+
+        <div class="products" id="productGrid" aria-live="polite">
+          <!-- Os cards são gerados pelo script.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= APRESENTAÇÃO DA MARCA ================= -->
+    <section class="section brand" id="marca">
+      <div class="container brand__inner">
+        <div class="brand__media reveal">
+          <img src="https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?auto=format&fit=crop&w=1000&q=80" alt="Modelo vestindo URBAN VIBE" loading="lazy">
+        </div>
+        <div class="brand__text reveal">
+          <p class="section__eyebrow">Sobre nós</p>
+          <h2 class="section__title">Nascida na rua.<br>Feita para durar.</h2>
+          <p>A URBAN VIBE nasceu da cultura urbana: do skate ao som alto, das esquinas às grandes avenidas. Criamos peças minimalistas, com modelagem moderna e materiais de alta qualidade.</p>
+          <p>Aqui, menos é mais. Preto, branco e cinza como base, para você montar o seu estilo sem regras e sem esforço.</p>
+
+          <ul class="brand__stats">
+            <li><strong>+50</strong><span>Peças exclusivas</span></li>
+            <li><strong>100%</strong><span>Algodão premium</span></li>
+            <li><strong>30 dias</strong><span>Troca garantida</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= RODAPÉ ================= -->
+  <footer class="footer" id="contato">
+    <div class="container footer__grid">
+      <div class="footer__col">
+        <a href="#inicio" class="logo logo--footer">URBAN<span>VIBE</span></a>
+        <p class="footer__text">Streetwear premium para quem vive a cidade com atitude.</p>
+        <div class="socials">
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1" fill="currentColor"></circle></svg>
+          </a>
+          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"></path><path d="M14 3c.4 2.6 2 4.2 5 4.5"></path></svg>
+          </a>
+          <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"></rect><path d="M10 9l5 3-5 3V9z" fill="currentColor"></path></svg>
+          </a>
+          <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.6-4.6A8.5 8.5 0 1 1 8 19.6L3 21z"></path><path d="M9 9.5c.5 2.5 2.5 4.5 5 5l1.2-1.2-2-1-.8.7c-.8-.4-1.5-1.1-1.9-1.9l.7-.8-1-2L9 9.5z" fill="currentColor"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer__col">
+        <h4>Loja</h4>
+        <ul>
+          <li><a href="#categorias">Masculino</a></li>
+          <li><a href="#categorias">Feminino</a></li>
+          <li><a href="#categorias">Acessórios</a></li>
+          <li><a href="#destaques">Destaques</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Contato</h4>
+        <ul>
+          <li><a href="mailto:contato@urbanvibe.com.br">contato@urbanvibe.com.br</a></li>
+          <li><a href="tel:+5511999999999">(11) 99999-9999</a></li>
+          <li>São Paulo, SP - Brasil</li>
+          <li>Seg a Sex, 9h às 18h</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <div class="container">
+        <p>&copy; <span id="year">2026</span> URBAN VIBE. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= CARRINHO (GAVETA LATERAL) ================= -->
+  <div class="overlay" id="overlay"></div>
+
+  <aside class="cart" id="cart" aria-label="Carrinho de compras" aria-hidden="true">
+    <div class="cart__header">
+      <h3>Seu carrinho</h3>
+      <button class="cart__close" id="cartClose" aria-label="Fechar carrinho">&times;</button>
+    </div>
+
+    <div class="cart__items" id="cartItems">
+      <!-- Itens gerados pelo script.js -->
+    </div>
+
+    <div class="cart__footer">
+      <div class="cart__row">
+        <span>Subtotal</span>
+        <strong id="cartSubtotal">R$ 0,00</strong>
+      </div>
+      <p class="cart__note" id="cartShipping"></p>
+      <button class="btn btn--dark btn--block" id="checkoutBtn">Finalizar compra</button>
+      <button class="cart__clear" id="clearCart">Esvaziar carrinho</button>
+    </div>
+  </aside>
+
+  <!-- ================= AVISO (TOAST) ================= -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
