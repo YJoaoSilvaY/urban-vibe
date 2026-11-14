@@ -7,110 +7,235 @@
    4. Renderização dos produtos e filtros
    5. Renderização do carrinho
    6. Abrir/fechar carrinho e toast
-   7. Menu mobile, header e animações de scroll
-   8. Inicialização
+   7. Detalhes do produto (modal)
+   8. Menu mobile, header e animações de scroll
+   9. Inicialização
    ===================================================== */
 
 (function () {
   "use strict";
 
   /* ---------- 1. DADOS DOS PRODUTOS ---------- */
+  // sizes: lista de tamanhos. Com 1 só item (ex.: "Único") o visitante não precisa escolher.
+  const SIZES_CLOTHING = ["P", "M", "G", "GG"];
+  const SIZES_ONE = ["Único"];
+
   const PRODUCTS = [
     {
       id: 1,
       name: "Camiseta Oversized Essential Preta",
       category: "masculino",
+      type: "Camiseta",
       price: 129.9,
       badge: "Novo",
-      image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=800&q=80",
+      sizes: SIZES_CLOTHING,
+      description:
+        "A base de todo look URBAN VIBE. Modelagem oversized com ombro caído e caimento solto, feita em algodão encorpado que mantém a forma lavagem após lavagem. Preta profunda, sem estampa: combina com tudo e aguenta a rotina da rua do primeiro ao último rolê.",
+      details: [
+        "100% algodão penteado, 220 g/m²",
+        "Modelagem oversized com ombro caído",
+        "Gola reforçada com ribana dupla",
+        "Etiqueta interna estampada, sem coceira"
+      ]
     },
     {
       id: 2,
       name: "Moletom Hoodie Street Black",
       category: "masculino",
+      type: "Moletom",
       price: 289.9,
       badge: "Mais vendido",
-      image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=800&q=80",
+      sizes: SIZES_CLOTHING,
+      description:
+        "O hoodie que virou uniforme. Moletom felpudo por dentro, capuz estruturado com cordão chato e bolso canguru fundo para as mãos e para o celular. Corte levemente amplo, pensado para usar sobre uma camiseta ou sozinho nos dias frios.",
+      details: [
+        "Moletom flanelado 400 g/m² (algodão e poliéster)",
+        "Capuz duplo com cordão chato",
+        "Bolso canguru profundo",
+        "Punhos e barra em ribana elástica"
+      ]
     },
     {
       id: 3,
       name: "Jaqueta Corta-Vento Urban",
       category: "masculino",
+      type: "Jaqueta",
       price: 349.9,
       badge: "",
-      image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80",
+      sizes: SIZES_CLOTHING,
+      description:
+        "Leve, rápida e pronta para a garoa da cidade. Tecido que repele a água, capuz embutido na gola e zíperes firmes. Cabe fácil na mochila e entra em cena quando o tempo vira, sem pesar no resto do look.",
+      details: [
+        "Tecido ripstop com repelência à água",
+        "Capuz recolhível na gola",
+        "Zíper frontal com proteção no queixo",
+        "Bolsos laterais com zíper"
+      ]
     },
     {
       id: 4,
       name: "Calça Cargo Concrete Grey",
       category: "masculino",
+      type: "Calça",
       price: 259.9,
       badge: "",
-      image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=800&q=80",
+      sizes: SIZES_CLOTHING,
+      description:
+        "Cargo com alma de skate. Cinza concreto, bolsos laterais volumosos e perna reta ampla que cai bem sobre tênis ou bota. Sarja firme, cós com ajuste interno e barra com cordão para você escolher entre o visual solto ou mais justo.",
+      details: [
+        "Sarja de algodão com elastano",
+        "Bolsos cargo com botão de pressão",
+        "Cós com elástico interno e passantes",
+        "Barra com cordão ajustável"
+      ]
     },
     {
       id: 5,
       name: "Cropped Boxy Branco",
       category: "feminino",
+      type: "Camiseta cropped",
       price: 119.9,
       badge: "Novo",
-      image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=800&q=80",
+      sizes: SIZES_CLOTHING,
+      description:
+        "Branco limpo, corte boxy e comprimento cropped na medida. Malha encorpada que não marca nem transparece, ideal para camadas sob jaquetas ou com calça de cintura alta. Simples, afiada e feita para repetir a semana inteira.",
+      details: [
+        "Malha de algodão 200 g/m², opaca",
+        "Corte boxy com comprimento cropped",
+        "Gola careca com acabamento duplo",
+        "Costuras reforçadas nos ombros"
+      ]
     },
     {
       id: 6,
       name: "Moletom Oversized Washed Grey",
       category: "feminino",
+      type: "Moletom",
       price: 279.9,
       badge: "",
-      image: "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&w=800&q=80",
+      sizes: SIZES_CLOTHING,
+      description:
+        "Cinza lavado com cara de peça vintage desde o primeiro dia. Moletom oversized de ombro caído e gola alta, com efeito stone wash que deixa cada peça um pouco diferente da outra. Conforto de casa, presença de rua.",
+      details: [
+        "Moletom 360 g/m² com lavagem stone wash",
+        "Modelagem oversized, ombro caído",
+        "Gola alta em ribana",
+        "Punhos e barra elásticos"
+      ]
     },
     {
       id: 7,
       name: "Calça Wide Leg Street",
       category: "feminino",
+      type: "Calça",
       price: 239.9,
       badge: "Mais vendido",
-      image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80",
+      sizes: SIZES_CLOTHING,
+      description:
+        "Perna larga, cintura alta e movimento de sobra. A wide leg URBAN VIBE tem tecido de caimento fluido, cós confortável e comprimento pensado para tênis volumoso. Alonga a silhueta e vai do rolê ao trabalho criativo sem trocar de roupa.",
+      details: [
+        "Sarja leve com toque macio",
+        "Cintura alta com cós largo",
+        "Bolsos laterais embutidos",
+        "Perna ampla e comprimento longo"
+      ]
     },
     {
       id: 8,
       name: "Jaqueta Bomber Noir",
       category: "feminino",
+      type: "Jaqueta",
       price: 369.9,
       badge: "Edição limitada",
-      image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80",
+      sizes: SIZES_CLOTHING,
+      description:
+        "Edição limitada em preto total. Bomber clássica com gola e punhos em ribana, forro acetinado e zíper metálico escovado. Um volume que impõe respeito e combina do cropped ao moletom. Quando acabar, acabou.",
+      details: [
+        "Shell em nylon com toque acetinado",
+        "Forro interno acetinado",
+        "Zíper metálico com acabamento escovado",
+        "Ribana na gola, nos punhos e na barra"
+      ]
     },
     {
       id: 9,
       name: "Boné Dad Hat Urban Vibe",
       category: "acessorios",
+      type: "Boné",
       price: 89.9,
       badge: "",
-      image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=800&q=80",
+      sizes: SIZES_ONE,
+      description:
+        "Aba curva, copa baixa e bordado discreto da marca na frente. O dad hat é o acessório que fecha o look sem pesar: regulagem metálica atrás, tecido macio e uma cor que conversa com preto, branco e cinza.",
+      details: [
+        "Sarja 100% algodão",
+        "Aba curva pré-formada",
+        "Bordado URBAN VIBE na frente",
+        "Regulagem metálica traseira (tamanho único)"
+      ]
     },
     {
       id: 10,
       name: "Bolsa Transversal Utility Black",
       category: "acessorios",
+      type: "Bolsa",
       price: 159.9,
       badge: "Novo",
-      image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80",
+      sizes: SIZES_ONE,
+      description:
+        "Pequena por fora, esperta por dentro. A utility cruza o corpo e guarda celular, carteira, chaves e fones em compartimentos separados. Nylon resistente, alça ajustável e zíperes firmes: feita para andar de metrô, de bike ou a pé.",
+      details: [
+        "Nylon resistente à água",
+        "Alça ajustável e removível",
+        "3 compartimentos com zíper",
+        "Tamanho único, aprox. 22 × 14 × 6 cm"
+      ]
     },
     {
       id: 11,
       name: "Meia Cano Alto Pack 3 Pares",
       category: "acessorios",
+      type: "Meias",
       price: 59.9,
       badge: "",
-      image: "https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?auto=format&fit=crop&w=800&q=80",
+      sizes: ["36–39", "40–44"],
+      description:
+        "O detalhe que faz diferença. Pack com três pares de cano alto em algodão macio, com ribana firme que não escorrega. Entram bem com tênis, skate e bota, e sobem o nível quando aparecem entre a barra da calça e o calçado.",
+      details: [
+        "Pack com 3 pares",
+        "Algodão com elastano",
+        "Cano alto com ribana reforçada",
+        "Calcanhar e ponta reforçados"
+      ]
     },
     {
       id: 12,
       name: "Gorro Beanie Monochrome",
       category: "acessorios",
+      type: "Gorro",
       price: 69.9,
       badge: "",
-      image: "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?auto=format&fit=crop&w=800&q=80",
+      sizes: SIZES_ONE,
+      description:
+        "Preto, branco e cinza em tricô canelado. O beanie URBAN VIBE tem punho dobrável, malha elástica que abraça sem apertar e etiqueta bordada discreta. Quente o bastante para o frio, leve o bastante para usar o dia inteiro.",
+      details: [
+        "Tricô canelado em acrílico",
+        "Punho dobrável",
+        "Malha elástica que se adapta à cabeça (tamanho único)",
+        "Etiqueta bordada URBAN VIBE"
+      ]
     }
   ];
 
@@ -122,6 +247,7 @@
 
   const FREE_SHIPPING_MIN = 299;
   const STORAGE_KEY = "urbanvibe_cart_v1";
+  const PRODUCT_HASH = /^#produto-(\d+)$/;
 
   /* ---------- 2. UTILITÁRIOS ---------- */
   const $ = (selector, scope) => (scope || document).querySelector(selector);
@@ -142,11 +268,16 @@
     return div.innerHTML;
   }
 
-  // Gera versões menores da mesma foto (Unsplash aceita ?w=) para o celular baixar menos dados
-  function imageSrcSet(url) {
-    return [400, 800]
+  // Troca a largura (?w=) da foto (Unsplash aceita vários tamanhos da mesma imagem)
+  function resizeImage(url, width) {
+    return url.replace(/([?&])w=\d+/, "$1w=" + width);
+  }
+
+  // Gera versões menores da mesma foto para o celular baixar menos dados
+  function imageSrcSet(url, widths) {
+    return widths
       .map(function (width) {
-        return url.replace(/([?&])w=\d+/, "$1w=" + width) + " " + width + "w";
+        return resizeImage(url, width) + " " + width + "w";
       })
       .join(", ");
   }
@@ -177,6 +308,26 @@
     true
   );
 
+  function getProduct(id) {
+    return PRODUCTS.find((p) => p.id === id);
+  }
+
+  // Produto com mais de um tamanho exige que o visitante escolha
+  function hasSizeChoice(product) {
+    return product.sizes.length > 1;
+  }
+
+  // Tamanho assumido para itens antigos salvos sem tamanho (carrinho de versões anteriores)
+  function fallbackSize(product) {
+    if (product.sizes.length === 1) return product.sizes[0];
+    return product.sizes.indexOf("M") !== -1 ? "M" : product.sizes[0];
+  }
+
+  // Cada linha do carrinho é identificada por produto + tamanho (ex.: "2|M")
+  function lineKey(id, size) {
+    return id + "|" + size;
+  }
+
   /* ---------- 3. ESTADO DO CARRINHO ---------- */
   let cart = loadCart();
 
@@ -184,10 +335,24 @@
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
       if (!Array.isArray(saved)) return [];
-      // Mantém apenas itens válidos que ainda existem no catálogo
-      return saved
-        .filter((item) => PRODUCTS.some((p) => p.id === item.id) && item.qty > 0)
-        .map((item) => ({ id: item.id, qty: Math.min(parseInt(item.qty, 10) || 1, 99) }));
+
+      const lines = [];
+      saved.forEach(function (item) {
+        const product = getProduct(item.id);
+        const qty = Math.min(parseInt(item.qty, 10) || 0, 99);
+        if (!product || qty <= 0) return; // descarta itens inválidos ou que saíram do catálogo
+
+        let size = item.size;
+        if (product.sizes.indexOf(size) === -1) size = fallbackSize(product);
+
+        const existing = lines.find((l) => l.id === product.id && l.size === size);
+        if (existing) {
+          existing.qty = Math.min(existing.qty + qty, 99);
+        } else {
+          lines.push({ id: product.id, size: size, qty: qty });
+        }
+      });
+      return lines;
     } catch (error) {
       return [];
     }
@@ -201,36 +366,38 @@
     }
   }
 
-  function getProduct(id) {
-    return PRODUCTS.find((p) => p.id === id);
+  function findLine(key) {
+    return cart.find((line) => lineKey(line.id, line.size) === key);
   }
 
-  function addToCart(id) {
-    const existing = cart.find((item) => item.id === id);
+  function addToCart(id, size) {
+    const product = getProduct(id);
+    const existing = cart.find((line) => line.id === id && line.size === size);
     if (existing) {
       if (existing.qty < 99) existing.qty += 1;
     } else {
-      cart.push({ id: id, qty: 1 });
+      cart.push({ id: id, size: size, qty: 1 });
     }
     updateCart();
-    const product = getProduct(id);
-    showToast(product.name + " adicionado ao carrinho");
+
+    const sizeLabel = hasSizeChoice(product) ? " (tam. " + size + ")" : "";
+    showToast(product.name + sizeLabel + " adicionado ao carrinho");
   }
 
-  function changeQty(id, delta) {
-    const item = cart.find((i) => i.id === id);
-    if (!item) return;
-    item.qty += delta;
-    if (item.qty <= 0) {
-      removeFromCart(id);
+  function changeQty(key, delta) {
+    const line = findLine(key);
+    if (!line) return;
+    line.qty += delta;
+    if (line.qty <= 0) {
+      removeFromCart(key);
       return;
     }
-    if (item.qty > 99) item.qty = 99;
+    if (line.qty > 99) line.qty = 99;
     updateCart();
   }
 
-  function removeFromCart(id) {
-    cart = cart.filter((item) => item.id !== id);
+  function removeFromCart(key) {
+    cart = cart.filter((line) => lineKey(line.id, line.size) !== key);
     updateCart();
   }
 
@@ -240,11 +407,11 @@
   }
 
   function getCartCount() {
-    return cart.reduce((sum, item) => sum + item.qty, 0);
+    return cart.reduce((sum, line) => sum + line.qty, 0);
   }
 
   function getCartSubtotal() {
-    return cart.reduce((sum, item) => sum + getProduct(item.id).price * item.qty, 0);
+    return cart.reduce((sum, line) => sum + getProduct(line.id).price * line.qty, 0);
   }
 
   function updateCart() {
@@ -262,20 +429,26 @@
       : "";
     const installment = formatPrice(product.price / 3);
 
+    // Produtos com tamanhos abrem os detalhes para o visitante escolher; os demais adicionam direto
+    const button = hasSizeChoice(product)
+      ? '<button class="card__btn" data-details="' + product.id + '">Escolher tamanho</button>'
+      : '<button class="card__btn" data-add="' + product.id + '">Adicionar ao carrinho</button>';
+
     return (
       '<article class="card" style="animation-delay:' + index * 0.06 + 's">' +
         '<div class="card__media">' +
-          '<img src="' + product.image + '" srcset="' + imageSrcSet(product.image) + '"' +
+          '<img src="' + product.image + '" srcset="' + imageSrcSet(product.image, [400, 800]) + '"' +
             ' sizes="(max-width: 560px) 50vw, (max-width: 900px) 33vw, (max-width: 1100px) 33vw, 300px"' +
             ' alt="' + escapeHTML(product.name) + '" loading="lazy" decoding="async">' +
           badge +
         "</div>" +
         '<div class="card__body">' +
           '<span class="card__category">' + CATEGORY_LABELS[product.category] + "</span>" +
-          '<h3 class="card__name">' + escapeHTML(product.name) + "</h3>" +
+          '<h3 class="card__name"><a class="card__link" href="#produto-' + product.id + '" data-product="' + product.id + '">' +
+            escapeHTML(product.name) + "</a></h3>" +
           '<p class="card__price">' + formatPrice(product.price) +
             "<small>ou 3x de " + installment + "</small></p>" +
-          '<button class="card__btn" data-add="' + product.id + '">Adicionar ao carrinho</button>' +
+          button +
         "</div>" +
       "</article>"
     );
@@ -303,11 +476,29 @@
   function initProducts() {
     renderProducts();
 
-    // Botões "Adicionar ao carrinho" (delegação de eventos)
     productGrid.addEventListener("click", function (event) {
+      // Clique no card (foto, nome ou área do card): abre os detalhes
+      const link = event.target.closest("[data-product]");
+      if (link) {
+        // Ctrl/Cmd/Shift + clique mantém o comportamento normal do navegador (nova aba/janela)
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+        event.preventDefault();
+        openProduct(parseInt(link.dataset.product, 10));
+        return;
+      }
+
+      // Botão "Escolher tamanho": abre os detalhes
+      const details = event.target.closest("[data-details]");
+      if (details) {
+        openProduct(parseInt(details.dataset.details, 10));
+        return;
+      }
+
+      // Botão "Adicionar ao carrinho" (produtos de tamanho único)
       const button = event.target.closest("[data-add]");
       if (!button) return;
-      addToCart(parseInt(button.dataset.add, 10));
+      const product = getProduct(parseInt(button.dataset.add, 10));
+      addToCart(product.id, product.sizes[0]);
       button.textContent = "Adicionado ✓";
       setTimeout(function () {
         button.textContent = "Adicionar ao carrinho";
@@ -337,10 +528,11 @@
     const count = getCartCount();
     const subtotal = getCartSubtotal();
 
-    // Contador no ícone
+    // Contador no ícone (e no botão "Ver carrinho" dos detalhes do produto)
     cartCountEl.textContent = count;
     cartCountEl.classList.add("bump");
     setTimeout(() => cartCountEl.classList.remove("bump"), 300);
+    pmCartCount.textContent = count;
 
     // Lista de itens
     if (cart.length === 0) {
@@ -353,23 +545,28 @@
         "</div>";
     } else {
       cartItemsEl.innerHTML = cart
-        .map(function (item) {
-          const product = getProduct(item.id);
+        .map(function (line) {
+          const product = getProduct(line.id);
+          const key = lineKey(line.id, line.size);
+          const sizeInfo = hasSizeChoice(product)
+            ? '<p class="cart-item__meta">Tamanho: ' + escapeHTML(line.size) + "</p>"
+            : "";
           return (
             '<div class="cart-item">' +
               '<img class="cart-item__img" src="' + product.image + '" alt="' + escapeHTML(product.name) + '">' +
               "<div>" +
                 '<h4 class="cart-item__name">' + escapeHTML(product.name) + "</h4>" +
+                sizeInfo +
                 '<p class="cart-item__price">' + formatPrice(product.price) + "</p>" +
                 '<div class="qty">' +
-                  '<button data-dec="' + item.id + '" aria-label="Diminuir quantidade">&minus;</button>' +
-                  "<span>" + item.qty + "</span>" +
-                  '<button data-inc="' + item.id + '" aria-label="Aumentar quantidade">+</button>' +
+                  '<button data-dec="' + key + '" aria-label="Diminuir quantidade">&minus;</button>' +
+                  "<span>" + line.qty + "</span>" +
+                  '<button data-inc="' + key + '" aria-label="Aumentar quantidade">+</button>' +
                 "</div>" +
               "</div>" +
               '<div class="cart-item__side">' +
-                '<span class="cart-item__total">' + formatPrice(product.price * item.qty) + "</span>" +
-                '<button class="cart-item__remove" data-remove="' + item.id + '">Remover</button>' +
+                '<span class="cart-item__total">' + formatPrice(product.price * line.qty) + "</span>" +
+                '<button class="cart-item__remove" data-remove="' + key + '">Remover</button>' +
               "</div>" +
             "</div>"
           );
@@ -402,9 +599,9 @@
       const dec = event.target.closest("[data-dec]");
       const remove = event.target.closest("[data-remove]");
 
-      if (inc) changeQty(parseInt(inc.dataset.inc, 10), 1);
-      else if (dec) changeQty(parseInt(dec.dataset.dec, 10), -1);
-      else if (remove) removeFromCart(parseInt(remove.dataset.remove, 10));
+      if (inc) changeQty(inc.dataset.inc, 1);
+      else if (dec) changeQty(dec.dataset.dec, -1);
+      else if (remove) removeFromCart(remove.dataset.remove);
       else if (event.target.closest("[data-close-cart]")) closeCart();
     });
 
@@ -432,11 +629,20 @@
   const overlayEl = $("#overlay");
   const toastEl = $("#toast");
   let toastTimer = null;
-
   let lastFocusedBeforeCart = null;
+
+  // Libera a rolagem da página somente quando menu, carrinho e detalhes estão todos fechados
+  function unlockScrollIfIdle() {
+    const busy =
+      cartEl.classList.contains("is-open") ||
+      modalEl.classList.contains("is-open") ||
+      navEl.classList.contains("is-open");
+    if (!busy) document.body.classList.remove("no-scroll");
+  }
 
   function openCart() {
     closeMenu(); // se o menu mobile estiver aberto, fecha antes de abrir o carrinho
+    closeProduct(); // idem para os detalhes do produto
     lastFocusedBeforeCart = document.activeElement;
     cartEl.classList.add("is-open");
     cartEl.setAttribute("aria-hidden", "false");
@@ -450,7 +656,7 @@
     cartEl.classList.remove("is-open");
     cartEl.setAttribute("aria-hidden", "true");
     overlayEl.classList.remove("is-visible");
-    document.body.classList.remove("no-scroll");
+    unlockScrollIfIdle();
 
     // Devolve o foco ao botão que abriu o carrinho (teclado e leitores de tela)
     if (wasOpen && lastFocusedBeforeCart && typeof lastFocusedBeforeCart.focus === "function") {
@@ -467,6 +673,25 @@
     }, 2400);
   }
 
+  // Mantém o foco do teclado dentro de um painel aberto (carrinho ou detalhes)
+  function trapFocus(event, container) {
+    const focusables = $$("button, a[href], input", container).filter(
+      (el) => !el.disabled && el.offsetParent !== null
+    );
+    if (focusables.length === 0) return;
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   function initCartDrawer() {
     $("#cartOpen").addEventListener("click", openCart);
     $("#cartClose").addEventListener("click", closeCart);
@@ -474,33 +699,219 @@
 
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape") {
+        // Se os detalhes do produto estão abertos, o Esc fecha só eles
+        if (modalEl.classList.contains("is-open")) {
+          closeProduct();
+          return;
+        }
         closeCart();
         closeMenu();
         return;
       }
 
-      // Mantém o foco do teclado dentro do carrinho enquanto ele está aberto
-      if (event.key === "Tab" && cartEl.classList.contains("is-open")) {
-        const focusables = $$("button, a[href]", cartEl).filter(
-          (el) => !el.disabled && el.offsetParent !== null
-        );
-        if (focusables.length === 0) return;
-
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
+      if (event.key === "Tab") {
+        if (cartEl.classList.contains("is-open")) trapFocus(event, cartEl);
+        else if (modalEl.classList.contains("is-open")) trapFocus(event, modalEl);
       }
     });
   }
 
-  /* ---------- 7. MENU MOBILE, HEADER E SCROLL ---------- */
+  /* ---------- 7. DETALHES DO PRODUTO (MODAL) ---------- */
+  const modalEl = $("#productModal");
+  const pmScroll = $("#pmScroll");
+  const pmMedia = $("#pmMedia");
+  const pmCategory = $("#pmCategory");
+  const pmName = $("#pmName");
+  const pmPrice = $("#pmPrice");
+  const pmInstall = $("#pmInstall");
+  const pmDesc = $("#pmDesc");
+  const pmDetails = $("#pmDetails");
+  const pmSizes = $("#pmSizes");
+  const pmSizesList = $("#pmSizesList");
+  const pmHint = $("#pmHint");
+  const pmAdd = $("#pmAdd");
+  const pmViewCart = $("#pmViewCart");
+  const pmCartCount = $("#pmCartCount");
+  const pmClose = $("#pmClose");
+
+  let currentProduct = null;
+  let lastFocusedBeforeModal = null;
+  let addFeedbackTimer = null;
+
+  function renderProductModal(product) {
+    const badge = product.badge
+      ? '<span class="card__badge">' + escapeHTML(product.badge) + "</span>"
+      : "";
+
+    // Uma <img> nova a cada abertura (o tratamento de foto quebrada recomeça do zero)
+    pmMedia.innerHTML =
+      '<img src="' + resizeImage(product.image, 1200) + '"' +
+        ' srcset="' + imageSrcSet(product.image, [800, 1200]) + '"' +
+        ' sizes="(max-width: 620px) 100vw, 520px"' +
+        ' alt="' + escapeHTML(product.name) + '" decoding="async">' +
+      badge;
+
+    pmCategory.textContent = CATEGORY_LABELS[product.category] + " · " + product.type;
+    pmName.textContent = product.name;
+    pmPrice.textContent = formatPrice(product.price);
+    pmInstall.textContent = "ou 3x de " + formatPrice(product.price / 3) + " sem juros";
+    pmDesc.textContent = product.description;
+    pmDetails.innerHTML = product.details
+      .map((item) => "<li>" + escapeHTML(item) + "</li>")
+      .join("");
+
+    // Tamanhos: botões de escolha ou aviso de tamanho único
+    if (hasSizeChoice(product)) {
+      pmSizesList.innerHTML = product.sizes
+        .map(
+          (size) =>
+            '<label class="size"><input type="radio" name="pmSize" value="' + escapeHTML(size) + '">' +
+            "<span>" + escapeHTML(size) + "</span></label>"
+        )
+        .join("");
+      pmHint.textContent = "Selecione um tamanho para adicionar ao carrinho.";
+    } else {
+      pmSizesList.innerHTML = '<span class="pm__single">Tamanho único</span>';
+      pmHint.textContent = "";
+    }
+    pmHint.classList.remove("is-error");
+    pmSizes.classList.remove("shake");
+
+    clearTimeout(addFeedbackTimer);
+    pmAdd.textContent = "Adicionar ao carrinho";
+  }
+
+  function getSelectedSize() {
+    if (!currentProduct) return null;
+    if (!hasSizeChoice(currentProduct)) return currentProduct.sizes[0];
+    const checked = $('input[name="pmSize"]:checked', pmSizesList);
+    return checked ? checked.value : null;
+  }
+
+  function addFromModal() {
+    if (!currentProduct) return;
+    const size = getSelectedSize();
+
+    // Sem tamanho escolhido: avisa com uma animação discreta, sem adicionar
+    if (!size) {
+      pmHint.textContent = "Escolha um tamanho para continuar.";
+      pmHint.classList.add("is-error");
+      pmSizes.classList.remove("shake");
+      void pmSizes.offsetWidth; // reinicia a animação
+      pmSizes.classList.add("shake");
+      const firstSize = $('input[name="pmSize"]', pmSizesList);
+      if (firstSize) firstSize.focus();
+      return;
+    }
+
+    addToCart(currentProduct.id, size);
+    pmAdd.textContent = "Adicionado ✓";
+    clearTimeout(addFeedbackTimer);
+    addFeedbackTimer = setTimeout(function () {
+      pmAdd.textContent = "Adicionar ao carrinho";
+    }, 1400);
+  }
+
+  // Abre os detalhes. opts.push === false: não cria entrada no histórico (link direto / botão Voltar)
+  function openProduct(id, opts) {
+    const product = getProduct(id);
+    if (!product) return;
+    const options = opts || {};
+
+    closeMenu();
+    if (cartEl.classList.contains("is-open")) closeCart();
+
+    const alreadyOpen = modalEl.classList.contains("is-open");
+    if (!alreadyOpen) lastFocusedBeforeModal = document.activeElement;
+
+    currentProduct = product;
+    renderProductModal(product);
+
+    modalEl.inert = false; // aberto: volta a aceitar foco e cliques
+    modalEl.classList.add("is-open");
+    modalEl.setAttribute("aria-hidden", "false");
+    document.body.classList.add("no-scroll");
+    pmScroll.scrollTop = 0;
+
+    // O histórico faz o botão Voltar do navegador/celular fechar os detalhes e voltar à vitrine
+    if (options.push !== false && !alreadyOpen) {
+      try {
+        history.pushState({ urbanProduct: id }, "", "#produto-" + id);
+      } catch (error) {
+        /* ambiente sem suporte (ex.: alguns arquivos locais): os detalhes funcionam sem histórico */
+      }
+    }
+
+    pmClose.focus({ preventScroll: true });
+  }
+
+  // Fecha apenas a parte visual. Retorna true se estava aberto.
+  function closeProductUI() {
+    if (!modalEl.classList.contains("is-open")) return false;
+
+    modalEl.classList.remove("is-open");
+    modalEl.setAttribute("aria-hidden", "true");
+    modalEl.inert = true; // fechado: sem foco, sem clique e fora do leitor de tela, na hora
+    currentProduct = null;
+    unlockScrollIfIdle();
+
+    if (lastFocusedBeforeModal && typeof lastFocusedBeforeModal.focus === "function") {
+      lastFocusedBeforeModal.focus({ preventScroll: true });
+    }
+    return true;
+  }
+
+  function closeProduct() {
+    const wasOpen = closeProductUI();
+    if (!wasOpen) return;
+
+    if (history.state && history.state.urbanProduct) {
+      history.back(); // desfaz a entrada criada ao abrir; a página continua na mesma posição
+    } else if (PRODUCT_HASH.test(location.hash)) {
+      // Abriu por link direto (#produto-N): só limpa o endereço
+      try {
+        history.replaceState(null, "", location.pathname + location.search);
+      } catch (error) {
+        /* ignora */
+      }
+    }
+  }
+
+  function initProductModal() {
+    pmClose.addEventListener("click", closeProduct);
+    $("#pmBackdrop").addEventListener("click", closeProduct);
+    pmAdd.addEventListener("click", addFromModal);
+
+    pmViewCart.addEventListener("click", function () {
+      closeProduct();
+      openCart();
+    });
+
+    // Escolher um tamanho limpa o aviso de erro
+    pmSizesList.addEventListener("change", function () {
+      pmHint.classList.remove("is-error");
+      pmHint.textContent = "";
+      pmSizes.classList.remove("shake");
+    });
+
+    // Botão Voltar/Avançar do navegador
+    window.addEventListener("popstate", function () {
+      const match = PRODUCT_HASH.exec(location.hash);
+      if (match && getProduct(parseInt(match[1], 10))) {
+        openProduct(parseInt(match[1], 10), { push: false });
+      } else {
+        closeProductUI();
+      }
+    });
+
+    // Link direto para um produto (ex.: .../index.html#produto-3)
+    const initial = PRODUCT_HASH.exec(location.hash);
+    if (initial && getProduct(parseInt(initial[1], 10))) {
+      openProduct(parseInt(initial[1], 10), { push: false });
+    }
+  }
+
+  /* ---------- 8. MENU MOBILE, HEADER E SCROLL ---------- */
   const headerEl = $("#header");
   const navEl = $("#nav");
   const menuToggle = $("#menuToggle");
@@ -515,8 +926,8 @@
 
     if (open) {
       document.body.classList.add("no-scroll");
-    } else if (!cartEl.classList.contains("is-open")) {
-      document.body.classList.remove("no-scroll");
+    } else {
+      unlockScrollIfIdle();
     }
   }
 
@@ -570,13 +981,14 @@
     elements.forEach((el) => observer.observe(el));
   }
 
-  /* ---------- 8. INICIALIZAÇÃO ---------- */
+  /* ---------- 9. INICIALIZAÇÃO ---------- */
   document.addEventListener("DOMContentLoaded", function () {
     $("#year").textContent = new Date().getFullYear();
     initHeader();
     initProducts();
     initCart();
     initCartDrawer();
+    initProductModal();
     initRevealOnScroll();
   });
 })();
