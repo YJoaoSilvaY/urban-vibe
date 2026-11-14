@@ -234,6 +234,51 @@
     </div>
   </aside>
 
+  <!-- ================= DETALHES DO PRODUTO (MODAL) ================= -->
+  <div class="modal" id="productModal" role="dialog" aria-modal="true" aria-labelledby="pmName" aria-hidden="true" inert>
+    <div class="modal__backdrop" id="pmBackdrop"></div>
+
+    <div class="pm">
+      <button class="pm__close" id="pmClose" aria-label="Fechar detalhes do produto">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M5 5l14 14M19 5L5 19"></path>
+        </svg>
+      </button>
+
+      <div class="pm__scroll" id="pmScroll">
+        <div class="pm__media" id="pmMedia">
+          <!-- Foto e selo preenchidos pelo script.js -->
+        </div>
+
+        <div class="pm__info">
+          <p class="pm__eyebrow" id="pmCategory"></p>
+          <h2 class="pm__name" id="pmName"></h2>
+          <p class="pm__price"><span id="pmPrice"></span><small id="pmInstall"></small></p>
+
+          <p class="pm__desc" id="pmDesc"></p>
+          <ul class="pm__details" id="pmDetails"></ul>
+
+          <fieldset class="pm__sizes" id="pmSizes">
+            <legend>Tamanho</legend>
+            <div class="pm__sizes-list" id="pmSizesList"></div>
+            <p class="pm__hint" id="pmHint" role="status"></p>
+          </fieldset>
+
+          <div class="pm__buy">
+            <button class="btn btn--dark btn--block" id="pmAdd">Adicionar ao carrinho</button>
+          </div>
+          <button class="btn btn--ghost btn--block pm__cart" id="pmViewCart">Ver carrinho (<span id="pmCartCount">0</span>)</button>
+
+          <ul class="pm__perks">
+            <li>Frete grátis em compras acima de R$ 299</li>
+            <li>Troca garantida em até 30 dias</li>
+            <li>Parcele em até 6x sem juros</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= AVISO (TOAST) ================= -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
