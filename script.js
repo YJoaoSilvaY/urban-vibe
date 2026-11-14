@@ -142,6 +142,15 @@
     return div.innerHTML;
   }
 
+  // Gera versões menores da mesma foto (Unsplash aceita ?w=) para o celular baixar menos dados
+  function imageSrcSet(url) {
+    return [400, 800]
+      .map(function (width) {
+        return url.replace(/([?&])w=\d+/, "$1w=" + width) + " " + width + "w";
+      })
+      .join(", ");
+  }
+
   // Imagem substituta (SVG) usada se alguma foto não carregar
   function placeholderImage() {
     const svg =
@@ -161,6 +170,7 @@
       const target = event.target;
       if (target && target.tagName === "IMG" && !target.dataset.fallback) {
         target.dataset.fallback = "true";
+        target.removeAttribute("srcset"); // srcset tem prioridade sobre src; precisa sair
         target.src = placeholderImage();
       }
     },
@@ -255,7 +265,9 @@
     return (
       '<article class="card" style="animation-delay:' + index * 0.06 + 's">' +
         '<div class="card__media">' +
-          '<img src="' + product.image + '" alt="' + escapeHTML(product.name) + '" loading="lazy">' +
+          '<img src="' + product.image + '" srcset="' + imageSrcSet(product.image) + '"' +
+            ' sizes="(max-width: 560px) 50vw, (max-width: 900px) 33vw, (max-width: 1100px) 33vw, 300px"' +
+            ' alt="' + escapeHTML(product.name) + '" loading="lazy" decoding="async">' +
           badge +
         "</div>" +
         '<div class="card__body">' +
@@ -421,7 +433,11 @@
   const toastEl = $("#toast");
   let toastTimer = null;
 
+  let lastFocusedBeforeCart = null;
+
   function openCart() {
+    closeMenu(); // se o menu mobile estiver aberto, fecha antes de abrir o carrinho
+    lastFocusedBeforeCart = document.activeElement;
     cartEl.classList.add("is-open");
     cartEl.setAttribute("aria-hidden", "false");
     overlayEl.classList.add("is-visible");
@@ -430,10 +446,16 @@
   }
 
   function closeCart() {
+    const wasOpen = cartEl.classList.contains("is-open");
     cartEl.classList.remove("is-open");
     cartEl.setAttribute("aria-hidden", "true");
     overlayEl.classList.remove("is-visible");
     document.body.classList.remove("no-scroll");
+
+    // Devolve o foco ao botão que abriu o carrinho (teclado e leitores de tela)
+    if (wasOpen && lastFocusedBeforeCart && typeof lastFocusedBeforeCart.focus === "function") {
+      lastFocusedBeforeCart.focus();
+    }
   }
 
   function showToast(message) {
@@ -454,6 +476,26 @@
       if (event.key === "Escape") {
         closeCart();
         closeMenu();
+        return;
+      }
+
+      // Mantém o foco do teclado dentro do carrinho enquanto ele está aberto
+      if (event.key === "Tab" && cartEl.classList.contains("is-open")) {
+        const focusables = $$("button, a[href]", cartEl).filter(
+          (el) => !el.disabled && el.offsetParent !== null
+        );
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     });
   }
@@ -463,20 +505,27 @@
   const navEl = $("#nav");
   const menuToggle = $("#menuToggle");
 
-  function closeMenu() {
-    navEl.classList.remove("is-open");
-    menuToggle.classList.remove("is-open");
-    menuToggle.setAttribute("aria-expanded", "false");
-    if (!cartEl.classList.contains("is-open")) {
+  // Abre/fecha o menu mobile mantendo header, botão, ARIA e bloqueio de rolagem sincronizados
+  function setMenuState(open) {
+    navEl.classList.toggle("is-open", open);
+    headerEl.classList.toggle("menu-open", open);
+    menuToggle.classList.toggle("is-open", open);
+    menuToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    menuToggle.setAttribute("aria-label", open ? "Fechar menu" : "Abrir menu");
+
+    if (open) {
+      document.body.classList.add("no-scroll");
+    } else if (!cartEl.classList.contains("is-open")) {
       document.body.classList.remove("no-scroll");
     }
   }
 
+  function closeMenu() {
+    setMenuState(false);
+  }
+
   function toggleMenu() {
-    const open = navEl.classList.toggle("is-open");
-    menuToggle.classList.toggle("is-open", open);
-    menuToggle.setAttribute("aria-expanded", open ? "true" : "false");
-    document.body.classList.toggle("no-scroll", open);
+    setMenuState(!navEl.classList.contains("is-open"));
   }
 
   function initHeader() {
