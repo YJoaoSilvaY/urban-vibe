@@ -30,6 +30,12 @@
       </nav>
 
       <div class="header__actions">
+        <button class="account-btn" id="accountOpen" aria-label="Entrar ou criar conta" aria-haspopup="dialog">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
+          </svg>
+        </button>
         <button class="cart-btn" id="cartOpen" aria-label="Abrir carrinho">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M6 7h12l1 13H5L6 7z"></path>
@@ -275,6 +281,100 @@
             <li>Parcele em até 6x sem juros</li>
           </ul>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= LOGIN E CADASTRO (SOMENTE VISUAL) ================= -->
+  <div class="modal auth" id="authModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle" aria-hidden="true" inert data-view="login">
+    <div class="modal__backdrop" id="authBackdrop"></div>
+
+    <div class="auth__box">
+      <button class="pm__close" id="authClose" aria-label="Fechar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M5 5l14 14M19 5L5 19"></path>
+        </svg>
+      </button>
+
+      <div class="auth__brand">
+        <span class="logo">URBAN<span>VIBE</span></span>
+      </div>
+
+      <div class="auth__body">
+        <!-- Tela de login -->
+        <section class="auth__panel" data-view="login">
+          <h2 class="auth__title" id="loginTitle">Entrar</h2>
+          <p class="auth__sub">Acesse sua conta e continue no ritmo da rua.</p>
+
+          <form class="auth__form" data-form="login" novalidate autocomplete="off">
+            <div class="field">
+              <label class="field__label" for="loginEmail">E-mail</label>
+              <div class="field__control">
+                <input class="field__input" id="loginEmail" type="email" data-type="email" data-role="email" placeholder="voce@email.com" autocomplete="off" inputmode="email" aria-describedby="loginEmail-err" autocapitalize="off" spellcheck="false">
+              </div>
+              <p class="field__error" id="loginEmail-err" role="alert"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="loginPassword">Senha</label>
+              <div class="field__control">
+                <input class="field__input" id="loginPassword" type="password" data-type="password" data-role="password" placeholder="Sua senha" autocomplete="off" aria-describedby="loginPassword-err" autocapitalize="off" spellcheck="false">
+                <button type="button" class="field__toggle" aria-pressed="false" aria-label="Mostrar ou ocultar senha">Mostrar</button>
+              </div>
+              <p class="field__error" id="loginPassword-err" role="alert"></p>
+            </div>
+            <button type="button" class="auth__forgot" id="forgotPassword">Esqueci minha senha</button>
+            <button type="submit" class="btn btn--dark btn--block">Entrar</button>
+          </form>
+
+          <p class="auth__switch">Não possui uma conta? <a href="#cadastro" data-auth-view="cadastro">Cadastre-se aqui</a></p>
+        </section>
+
+        <!-- Tela de cadastro -->
+        <section class="auth__panel" data-view="cadastro" hidden>
+          <h2 class="auth__title" id="registerTitle">Criar conta</h2>
+          <p class="auth__sub">Cadastre-se para acompanhar lançamentos e pedidos.</p>
+
+          <form class="auth__form" data-form="register" novalidate autocomplete="off">
+            <div class="field">
+              <label class="field__label" for="regName">Nome completo</label>
+              <div class="field__control">
+                <input class="field__input" id="regName" type="text" data-type="text" data-role="name" placeholder="Seu nome completo" autocomplete="off" aria-describedby="regName-err" autocapitalize="off" spellcheck="false">
+              </div>
+              <p class="field__error" id="regName-err" role="alert"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="regEmail">E-mail</label>
+              <div class="field__control">
+                <input class="field__input" id="regEmail" type="email" data-type="email" data-role="email" placeholder="voce@email.com" autocomplete="off" inputmode="email" aria-describedby="regEmail-err" autocapitalize="off" spellcheck="false">
+              </div>
+              <p class="field__error" id="regEmail-err" role="alert"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="regPassword">Senha</label>
+              <div class="field__control">
+                <input class="field__input" id="regPassword" type="password" data-type="password" data-role="password" placeholder="Mínimo de 8 caracteres" autocomplete="off" aria-describedby="regPassword-err" autocapitalize="off" spellcheck="false">
+                <button type="button" class="field__toggle" aria-pressed="false" aria-label="Mostrar ou ocultar senha">Mostrar</button>
+              </div>
+              <p class="field__error" id="regPassword-err" role="alert"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="regConfirm">Confirmar senha</label>
+              <div class="field__control">
+                <input class="field__input" id="regConfirm" type="password" data-type="password" data-role="confirm" placeholder="Repita a senha" autocomplete="off" aria-describedby="regConfirm-err" autocapitalize="off" spellcheck="false">
+                <button type="button" class="field__toggle" aria-pressed="false" aria-label="Mostrar ou ocultar senha">Mostrar</button>
+              </div>
+              <p class="field__error" id="regConfirm-err" role="alert"></p>
+            </div>
+            <button type="submit" class="btn btn--dark btn--block">Criar conta</button>
+          </form>
+
+          <p class="auth__switch">Já possui uma conta? <a href="#login" data-auth-view="login">Faça login</a></p>
+        </section>
+
+        <p class="auth__note">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>
+          Versão de demonstração: nenhum dado é enviado nem salvo.
+        </p>
       </div>
     </div>
   </div>
