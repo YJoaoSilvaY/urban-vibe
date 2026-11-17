@@ -1,6 +1,7 @@
 /* =====================================================
    URBAN VIBE - Lógica da loja
    Sumário:
+   0. Configuração do Supabase (cole aqui a Project URL e a Publishable key)
    1. Dados dos produtos
    2. Utilitários
    3. Estado do carrinho (com localStorage)
@@ -14,6 +15,14 @@
 
 (function () {
   "use strict";
+
+  /* ---------- 0. CONFIGURAÇÃO DO SUPABASE ---------- */
+  // >>> COLE AQUI SEUS DOIS VALORES (Supabase → Project Settings → API / API Keys) <<<
+  // 1) Project URL, ex.: "https://abcdefghijkl.supabase.co"
+  const SUPABASE_URL = "https://bbfpzvssjfkkrubsxsju.supabase.co";
+  // 2) Publishable key, ex.: "sb_publishable_xxxxxxxx" (chave PÚBLICA, feita para ficar no navegador)
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_qdBVGtE0vNDIY_p28Ysr2w_v5usptt7";
+  // NUNCA coloque aqui a "secret key" nem a "service_role": elas dão acesso total ao banco.
 
   /* ---------- 1. DADOS DOS PRODUTOS ---------- */
   // sizes: lista de tamanhos. Com 1 só item (ex.: "Único") o visitante não precisa escolher.
@@ -1167,15 +1176,144 @@
     });
   }
 
-  /* ---------- 7B. LOGIN E CADASTRO (SOMENTE VISUAL) ---------- */
-  // Demonstração visual: nada é enviado, gravado ou guardado (sem rede, sem localStorage, sem cookies).
-  // Os campos não têm atributo "name" e os formulários nunca são enviados ao navegador/servidor.
-  const AUTH_HASH = /^#(login|cadastro)$/;
+  /* ---------- 7B. LOGIN E CADASTRO (SUPABASE AUTH) ---------- */
+  // Autenticação real com Supabase Auth: e-mail + senha. O nome fica nos metadados do usuário (full_name).
+  // O site usa somente a Publishable key; a senha vai direto ao Supabase por HTTPS e nunca é guardada aqui.
+  const AUTH_HASH = /^#(login|cadastro|recuperar|nova-senha)$/;
+  const ACCOUNT_HASH = /^#minha-conta$/;
+
+  // Troca o endereço (#...) sem criar entrada no histórico. Só marca a entrada como "nossa" se ela já era:
+  // assim, em um link direto, fechar a tela não manda a pessoa de volta para fora do site.
+  function replaceRoute(hash, marker) {
+    const state = history.state;
+    const ours = state && (state.urbanAuth || state.urbanAccount || state.urbanProduct);
+    try {
+      history.replaceState(ours ? marker : null, "", location.pathname + location.search + hash);
+    } catch (error) {
+      /* ambiente sem suporte a histórico */
+    }
+  }
   const authEl = $("#authModal");
   const authPanels = $$(".auth__panel", authEl);
   const authClose = $("#authClose");
   const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   let lastFocusedBeforeAuth = null;
+  let sb = null; // cliente do Supabase (null se não configurado ou se a biblioteca não carregou)
+  let currentUser = null;
+  let authBusy = false;
+  let sessionChecked = false; // true depois que o Supabase informou se há sessão salva
+  let recoveryMode = false; // true quando a pessoa chegou pelo link de recuperação de senha
+
+  // Detecta, antes do Supabase limpar o endereço, se a pessoa chegou pelo link do e-mail de confirmação
+  const cameFromEmailLink = /[#&?]type=(signup|email|magiclink)/.test(location.hash + location.search);
+  const cameFromRecoveryLink = /[#&?]type=recovery/.test(location.hash + location.search);
+  const emailLinkError = /[#&?]error_code=/.test(location.hash + location.search);
+
+  // Guarda só um "1" na aba (sessionStorage) para a tela "Nova senha" sobreviver a um recarregamento
+  function setRecoveryFlag(on) {
+    recoveryMode = on;
+    try {
+      if (on) sessionStorage.setItem("urbanvibe_recovery", "1");
+      else sessionStorage.removeItem("urbanvibe_recovery");
+    } catch (error) {
+      /* armazenamento indisponível: segue sem o recurso */
+    }
+  }
+
+  function hadRecoveryFlag() {
+    try {
+      return sessionStorage.getItem("urbanvibe_recovery") === "1";
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Confere a chave: recusa qualquer chave "secret" ou "service_role" no navegador
+  function isUnsafeKey(key) {
+    if (/^sb_secret_/.test(key)) return true;
+    const parts = key.split(".");
+    if (parts.length === 3) {
+      try {
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+        return payload.role === "service_role";
+      } catch (error) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  function createAuthClient() {
+    const configured =
+      /^https:\/\/[a-z0-9-]+\.supabase\.(co|in)\/?$/i.test(SUPABASE_URL) &&
+      SUPABASE_PUBLISHABLE_KEY.length > 20 &&
+      SUPABASE_PUBLISHABLE_KEY.indexOf("COLE_AQUI") === -1;
+
+    if (!configured) {
+      console.warn("[URBAN VIBE] Supabase não configurado: preencha SUPABASE_URL e SUPABASE_PUBLISHABLE_KEY no topo do script.js.");
+      return null;
+    }
+    if (isUnsafeKey(SUPABASE_PUBLISHABLE_KEY)) {
+      console.error("[URBAN VIBE] Chave secreta/service_role detectada no frontend. Use apenas a Publishable key.");
+      return null;
+    }
+    if (!window.supabase || typeof window.supabase.createClient !== "function") {
+      console.warn("[URBAN VIBE] Biblioteca do Supabase não carregou (CDN indisponível?).");
+      return null;
+    }
+    return window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+  }
+
+  function displayName(user) {
+    const meta = user && user.user_metadata ? user.user_metadata : {};
+    const name = (meta.full_name || "").trim();
+    if (name) return name;
+    return user && user.email ? user.email.split("@")[0] : "";
+  }
+
+  // Nome mostrado: o do perfil (banco) e, se ainda não carregou, o dos metadados do usuário
+  function currentName() {
+    const fromProfile = profile && profile.full_name ? profile.full_name.trim() : "";
+    return fromProfile || displayName(currentUser);
+  }
+
+  // Ícone do cabeçalho conforme a pessoa esteja logada ou não
+  function updateHeaderAccount() {
+    const initial = $("#accountInitial");
+    const button = $("#accountOpen");
+    if (currentUser) {
+      const name = currentName();
+      initial.textContent = (name.charAt(0) || "?").toUpperCase();
+      initial.hidden = false;
+      button.classList.add("is-logged");
+      button.setAttribute("aria-label", "Minha conta (" + name + ")");
+    } else {
+      initial.hidden = true;
+      initial.textContent = "";
+      button.classList.remove("is-logged");
+      button.setAttribute("aria-label", "Entrar ou criar conta");
+    }
+  }
+
+  // Chamada sempre que a sessão muda. Ao trocar de usuário, os dados do anterior são descartados.
+  function setCurrentUser(user) {
+    const previousId = currentUser ? currentUser.id : null;
+    currentUser = user || null;
+    const newId = currentUser ? currentUser.id : null;
+
+    if (newId !== previousId) {
+      resetProfileState(); // nunca deixa dados de outra pessoa na tela
+      // adiado: não chamar o Supabase de dentro do onAuthStateChange evita travar a biblioteca
+      if (currentUser) setTimeout(loadProfile, 0);
+    }
+    updateHeaderAccount();
+    renderAccountPage();
+
+    // Saiu da conta (ou a sessão expirou) com a página Minha conta aberta: volta para a loja
+    if (!currentUser && accountPageOpen()) closeAccountPage();
+  }
 
   function setAuthView(view) {
     authPanels.forEach(function (panel) {
@@ -1188,12 +1326,35 @@
       }
     });
     authEl.dataset.view = view;
-    authEl.setAttribute("aria-labelledby", view === "cadastro" ? "registerTitle" : "loginTitle");
+    const titles = { cadastro: "registerTitle", recuperar: "recoverTitle", "nova-senha": "newPassTitle", login: "loginTitle" };
+    authEl.setAttribute("aria-labelledby", titles[view] || "loginTitle");
+  }
+
+  function setFormStatus(container, type, message) {
+    const el = container.matches(".auth__status") ? container : $(".auth__status", container);
+    el.textContent = message || "";
+    el.className = "auth__status" + (message ? " is-" + type : "");
+    el.hidden = !message;
+  }
+
+  function setFormBusy(form, busy, label) {
+    authBusy = busy;
+    const btn = $('button[type="submit"]', form);
+    if (busy) {
+      btn.dataset.label = btn.textContent;
+      btn.textContent = label;
+    } else if (btn.dataset.label) {
+      btn.textContent = btn.dataset.label;
+    }
+    btn.disabled = busy;
+    btn.classList.toggle("is-loading", busy);
+    form.setAttribute("aria-busy", busy ? "true" : "false");
   }
 
   function clearAuthForms() {
     $$("form", authEl).forEach(function (form) {
       form.reset();
+      setFormStatus(form, "", "");
       $$(".field", form).forEach(function (field) {
         field.classList.remove("is-invalid");
         const input = $("input", field);
@@ -1202,20 +1363,31 @@
         $(".field__error", field).textContent = "";
       });
     });
+    $$("form", authEl).forEach((form) => (form.hidden = false)); // volta a mostrar formulários ocultados após sucesso
+    $("#newPassDone").hidden = true;
     $$(".field__toggle", authEl).forEach(function (btn) {
       btn.textContent = "Mostrar";
       btn.setAttribute("aria-pressed", "false");
     });
   }
 
-  // Abre o login/cadastro. opts.push === false: sem nova entrada no histórico
+  // Abre o login/cadastro/conta. opts.push === false: sem nova entrada no histórico
   function openAuth(view, opts) {
     const options = opts || {};
-    const target = view === "cadastro" ? "cadastro" : "login";
+    const known = ["login", "cadastro", "recuperar", "nova-senha"];
+    let target = known.indexOf(view) !== -1 ? view : "login";
+    // "Nova senha" só existe depois de abrir o link de recuperação enviado por e-mail
+    if (target === "nova-senha" && !(recoveryMode && currentUser)) target = "login";
+    // Logado (fora da recuperação de senha): login/cadastro não fazem sentido, vai para Minha conta
+    if (currentUser && !recoveryMode) {
+      openAccountPage({ replace: options.push === false });
+      return;
+    }
 
     closeMenu();
     if (cartEl.classList.contains("is-open")) closeCart();
     closeProductUI();
+    closeAccountPageUI();
 
     const alreadyOpen = authEl.classList.contains("is-open");
     if (!alreadyOpen) lastFocusedBeforeAuth = document.activeElement;
@@ -1231,8 +1403,8 @@
 
     if (options.push !== false) {
       try {
-        // Trocar entre login e cadastro substitui a entrada (o Voltar fecha a tela, não alterna)
-        if (alreadyOpen) history.replaceState({ urbanAuth: target }, "", "#" + target);
+        // Trocar entre telas substitui a entrada (o Voltar fecha a tela, não alterna)
+        if (alreadyOpen) replaceRoute("#" + target, { urbanAuth: target });
         else history.pushState({ urbanAuth: target }, "", "#" + target);
       } catch (error) {
         /* ambiente sem suporte a histórico: as telas funcionam do mesmo jeito */
@@ -1270,21 +1442,24 @@
   }
 
   function setFieldError(field, message) {
-    const input = $("input", field);
+    const input = $("input, select", field);
     field.classList.toggle("is-invalid", Boolean(message));
     if (message) input.setAttribute("aria-invalid", "true");
     else input.removeAttribute("aria-invalid");
     $(".field__error", field).textContent = message || "";
   }
 
-  // Validação visual simples (só para mostrar como ficará). Os valores não são guardados nem enviados.
+  function fieldValue(form, role) {
+    return $('input[data-role="' + role + '"]', form).value;
+  }
+
+  // Validação no navegador (o Supabase valida de novo no servidor)
   function validateForm(form) {
     const kind = form.dataset.form;
     const fields = {};
     $$(".field", form).forEach(function (field) {
       fields[$("input", field).dataset.role] = field;
     });
-    const value = (role) => $("input", fields[role]).value;
     let firstInvalid = null;
 
     function check(role, message) {
@@ -1293,23 +1468,253 @@
     }
 
     if (kind === "register") {
-      check("name", value("name").trim().length < 3 ? "Informe seu nome completo." : "");
+      check("name", fieldValue(form, "name").trim().length < 3 ? "Informe seu nome completo." : "");
     }
-    check("email", !EMAIL_PATTERN.test(value("email").trim()) ? "Digite um e-mail válido." : "");
-    if (kind === "register") {
-      check("password", value("password").length < 8 ? "Use pelo menos 8 caracteres." : "");
-      check("confirm", value("confirm") !== value("password") || !value("confirm") ? "As senhas não conferem." : "");
-    } else {
-      check("password", !value("password") ? "Digite sua senha." : "");
+    if (kind !== "newpass") {
+      check("email", !EMAIL_PATTERN.test(fieldValue(form, "email").trim()) ? "Digite um e-mail válido." : "");
+    }
+    if (kind === "register" || kind === "newpass") {
+      const pass = fieldValue(form, "password");
+      check("password", pass.length < 8 ? "Use pelo menos 8 caracteres." : "");
+      check("confirm", !fieldValue(form, "confirm") || fieldValue(form, "confirm") !== pass ? "As senhas não conferem." : "");
+    } else if (kind === "login") {
+      check("password", !fieldValue(form, "password") ? "Digite sua senha." : "");
     }
 
     if (firstInvalid) firstInvalid.focus();
     return !firstInvalid;
   }
 
+  // Traduz erros do Supabase em mensagens claras, sem revelar se um e-mail existe
+  function authErrorMessage(error, context) {
+    const code = (error && (error.code || "")).toString();
+    const status = error && error.status;
+    const text = ((error && error.message) || "").toLowerCase();
+
+    if (code === "email_not_confirmed" || text.indexOf("email not confirmed") !== -1) {
+      return "Confirme seu e-mail antes de entrar. Procure o link na sua caixa de entrada (e no spam).";
+    }
+    if (code === "invalid_credentials" || text.indexOf("invalid login credentials") !== -1) {
+      return "E-mail ou senha incorretos.";
+    }
+    if (code === "same_password" || text.indexOf("different from the old password") !== -1) {
+      return "A nova senha precisa ser diferente da atual.";
+    }
+    if (code === "weak_password" || text.indexOf("password should") !== -1) {
+      return "Senha fraca. Use pelo menos 8 caracteres, misturando letras e números.";
+    }
+    if (code === "over_request_rate_limit" || code === "over_email_send_rate_limit" || status === 429) {
+      return "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente de novo.";
+    }
+    if (code === "email_address_invalid" || text.indexOf("invalid email") !== -1) {
+      return "Esse e-mail não pôde ser usado. Verifique o endereço digitado.";
+    }
+    if (code === "session_not_found" || text.indexOf("session missing") !== -1 || text.indexOf("session_not_found") !== -1) {
+      return "Este link expirou ou já foi usado. Peça um novo link de recuperação.";
+    }
+    if (code === "signup_disabled") {
+      return "Novos cadastros estão temporariamente desativados.";
+    }
+    if (error && (error.name === "AuthRetryableFetchError" || text.indexOf("failed to fetch") !== -1 || text.indexOf("network") !== -1)) {
+      return "Não foi possível conectar. Verifique sua internet e tente novamente.";
+    }
+    const fallback = {
+      register: "Não foi possível criar a conta agora. Tente novamente em instantes.",
+      recover: "Não foi possível enviar o link agora. Tente novamente em instantes.",
+      newpass: "Não foi possível atualizar a senha agora. Tente novamente em instantes."
+    };
+    return fallback[context] || "Não foi possível entrar agora. Tente novamente em instantes.";
+  }
+
+  async function handleRegister(form) {
+    const name = fieldValue(form, "name").trim();
+    const email = fieldValue(form, "email").trim();
+    const password = fieldValue(form, "password");
+
+    setFormStatus(form, "", "");
+    if (!sb) return setFormStatus(form, "error", "O cadastro está indisponível no momento. Tente novamente mais tarde.");
+
+    setFormBusy(form, true, "Criando conta…");
+    try {
+      const options = { data: { full_name: name } };
+      if (/^https?:$/.test(location.protocol)) options.emailRedirectTo = location.origin + location.pathname;
+
+      const result = await sb.auth.signUp({ email: email, password: password, options: options });
+      if (result.error) throw result.error;
+
+      const open = authEl.classList.contains("is-open");
+      if (result.data && result.data.session) {
+        // Confirmação de e-mail desligada no painel: a pessoa já entra logada
+        showToast("Conta criada! Bem-vindo(a), " + name.split(" ")[0] + ".");
+        setFormBusy(form, false);
+        closeAuth();
+        return;
+      }
+
+      // Confirmação de e-mail ativada: mensagem única, também usada se o e-mail já existir (sem revelar)
+      form.reset();
+      $$(".field", form).forEach((field) => setFieldError(field, ""));
+      if (open) {
+        setFormStatus(form, "success", "Quase lá! Se o e-mail informado puder ser cadastrado, enviamos um link de confirmação para " + email + ". Confirme para poder entrar.");
+      } else {
+        showToast("Enviamos um link de confirmação para o seu e-mail.");
+      }
+    } catch (error) {
+      setFormStatus(form, "error", authErrorMessage(error, "register"));
+      $('input[data-role="password"]', form).value = "";
+      $('input[data-role="confirm"]', form).value = "";
+    } finally {
+      setFormBusy(form, false);
+    }
+  }
+
+  async function handleLogin(form) {
+    const email = fieldValue(form, "email").trim();
+    const password = fieldValue(form, "password");
+
+    setFormStatus(form, "", "");
+    if (!sb) return setFormStatus(form, "error", "O login está indisponível no momento. Tente novamente mais tarde.");
+
+    setFormBusy(form, true, "Entrando…");
+    try {
+      const result = await sb.auth.signInWithPassword({ email: email, password: password });
+      if (result.error) throw result.error;
+
+      setCurrentUser(result.data.user);
+      showToast("Bem-vindo(a), " + displayName(result.data.user).split(" ")[0] + "!");
+      setFormBusy(form, false);
+      closeAuth();
+    } catch (error) {
+      setFormStatus(form, "error", authErrorMessage(error, "login"));
+      $('input[data-role="password"]', form).value = "";
+    } finally {
+      setFormBusy(form, false);
+    }
+  }
+
+  // Envia o link de recuperação de senha (resetPasswordForEmail)
+  async function handleRecover(form) {
+    const email = fieldValue(form, "email").trim();
+    setFormStatus(form, "", "");
+    if (!sb) return setFormStatus(form, "error", "A recuperação de senha está indisponível no momento. Tente novamente mais tarde.");
+
+    setFormBusy(form, true, "Enviando…");
+    try {
+      const options = {};
+      // Volta para a página inicial do site; a loja abre a tela "Nova senha" ao reconhecer o link
+      if (/^https?:$/.test(location.protocol)) options.redirectTo = location.origin + location.pathname;
+
+      const result = await sb.auth.resetPasswordForEmail(email, options);
+      if (result.error) throw result.error;
+
+      form.reset();
+      $$(".field", form).forEach((field) => setFieldError(field, ""));
+      // Mesma mensagem exista ou não conta com esse e-mail (não revela quem tem cadastro)
+      setFormStatus(form, "success", "Se existir uma conta com " + email + ", enviamos um link para criar uma nova senha. Confira também o spam.");
+    } catch (error) {
+      setFormStatus(form, "error", authErrorMessage(error, "recover"));
+    } finally {
+      setFormBusy(form, false);
+    }
+  }
+
+  // Salva a nova senha (updateUser) usando a sessão aberta pelo link do e-mail
+  async function handleNewPassword(form) {
+    const password = fieldValue(form, "password");
+    setFormStatus(form, "", "");
+    if (!sb) return setFormStatus(form, "error", "Não foi possível atualizar a senha no momento. Tente novamente mais tarde.");
+
+    setFormBusy(form, true, "Salvando…");
+    try {
+      const result = await sb.auth.updateUser({ password: password });
+      if (result.error) throw result.error;
+
+      setRecoveryFlag(false);
+      form.reset();
+      $$(".field", form).forEach((field) => setFieldError(field, ""));
+      // Encerra a sessão de recuperação: a pessoa entra de novo com a senha nova
+      try {
+        await sb.auth.signOut();
+      } catch (signOutError) {
+        /* a senha já foi trocada; seguimos */
+      }
+      setCurrentUser(null);
+      form.hidden = true;
+      $("#newPassDone").hidden = false;
+      showToast("Senha atualizada com sucesso!");
+    } catch (error) {
+      setFormStatus(form, "error", authErrorMessage(error, "newpass"));
+    } finally {
+      setFormBusy(form, false);
+    }
+  }
+
+  async function handleLogout(button) {
+    if (!sb || authBusy) return;
+    authBusy = true;
+    button.disabled = true;
+    const status = $("#apAccountStatus");
+    setFormStatus(status, "", "");
+    try {
+      const result = await sb.auth.signOut();
+      if (result.error) throw result.error;
+      setCurrentUser(null);
+      showToast("Você saiu da sua conta.");
+    } catch (error) {
+      setFormStatus(status, "error", "Não foi possível sair agora. Tente novamente.");
+    } finally {
+      authBusy = false;
+      button.disabled = false;
+    }
+  }
+
   function initAuth() {
+    // Cliente Supabase e sessão (o supabase-js guarda e renova a sessão sozinho)
+    sb = createAuthClient();
+    if (sb) {
+      sb.auth.getSession().then(function (result) {
+        if (result.data && result.data.session) {
+          setCurrentUser(result.data.session.user);
+          if (hadRecoveryFlag()) recoveryMode = true; // recarregou a página durante a recuperação de senha
+        } else {
+          setRecoveryFlag(false);
+        }
+        sessionChecked = true;
+        // Link direto para Minha conta / login: agora que a sessão é conhecida, abre a tela certa
+        if (ACCOUNT_HASH.test(location.hash) || AUTH_HASH.test(location.hash)) syncFromLocation();
+      });
+      sb.auth.onAuthStateChange(function (event, session) {
+        if (event === "SIGNED_OUT") setRecoveryFlag(false);
+        setCurrentUser(session ? session.user : null);
+
+        if (event === "PASSWORD_RECOVERY") {
+          // Chegou pelo link de recuperação: abre a tela para cadastrar a nova senha
+          setRecoveryFlag(true);
+          try {
+            replaceRoute("#nova-senha", { urbanAuth: "nova-senha" });
+          } catch (error) {
+            /* ignora */
+          }
+          openAuth("nova-senha", { push: false });
+        } else if (event === "SIGNED_IN" && cameFromEmailLink && !cameFromRecoveryLink) {
+          showToast("E-mail confirmado! Sua conta está ativa.");
+        }
+      });
+    } else {
+      sessionChecked = true;
+    }
+    if (emailLinkError) {
+      showToast("Link de confirmação inválido ou expirado. Tente criar a conta ou entrar novamente.");
+      try {
+        history.replaceState(null, "", location.pathname + location.search);
+      } catch (error) {
+        /* ignora */
+      }
+    }
+
     $("#accountOpen").addEventListener("click", function () {
-      openAuth("login");
+      if (currentUser) openAccountPage();
+      else openAuth("login");
     });
     authClose.addEventListener("click", closeAuth);
     $("#authBackdrop").addEventListener("click", closeAuth);
@@ -1333,23 +1738,22 @@
       });
     });
 
-    // Esqueci minha senha: apenas demonstração visual
+    // Esqueci minha senha: abre a tela de recuperação (levando o e-mail já digitado, se for válido)
     $("#forgotPassword").addEventListener("click", function () {
-      showToast("Recuperação de senha: disponível em breve (demonstração visual).");
+      const typed = $("#loginEmail").value.trim();
+      openAuth("recuperar");
+      if (EMAIL_PATTERN.test(typed)) $("#recEmail").value = typed;
     });
 
-    // Envio: nunca transmite nem armazena nada
     $$("form", authEl).forEach(function (form) {
       form.addEventListener("submit", function (event) {
         event.preventDefault();
-        if (!validateForm(form)) return;
-        const message =
-          form.dataset.form === "register"
-            ? "Demonstração visual: sua conta não foi criada e nenhum dado foi enviado ou salvo."
-            : "Demonstração visual: nenhum dado foi enviado ou salvo.";
-        form.reset();
-        $$(".field", form).forEach((field) => setFieldError(field, ""));
-        showToast(message);
+        if (authBusy || !validateForm(form)) return;
+        const kind = form.dataset.form;
+        if (kind === "register") handleRegister(form);
+        else if (kind === "recover") handleRecover(form);
+        else if (kind === "newpass") handleNewPassword(form);
+        else handleLogin(form);
       });
 
       // Apaga o aviso do campo assim que a pessoa volta a digitar
@@ -1360,18 +1764,326 @@
     });
   }
 
-  // Mantém detalhes do produto e login/cadastro sincronizados com o endereço (#produto-N, #login, #cadastro)
+  /* ---------- 7C. MINHA CONTA (PERFIL E ENDEREÇO NO SUPABASE) ---------- */
+  // Tabela public.profiles (ver supabase-profiles.sql). Com RLS, cada pessoa só enxerga e edita a própria linha.
+  const accountPageEl = $("#accountPage");
+  const addressForm = $("#addressForm");
+  const PROFILE_SELECT = "full_name,cep,street,number,complement,neighborhood,city,state";
+  const ADDRESS_FIELDS = ["cep", "street", "number", "complement", "neighborhood", "city", "state"];
+  const ADDRESS_REQUIRED = ["cep", "street", "number", "neighborhood", "city", "state"];
+  const UF_LIST = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+  let profile = null; // linha de profiles da pessoa logada (ou null)
+  let profileExists = false; // já existe linha no banco? (define insert x update)
+  let profileState = "idle"; // idle | loading | ready | error
+  let profileRequest = 0; // descarta respostas atrasadas de outra sessão
+  let profileBusy = false;
+  let accountScrollY = 0;
+  let lastFocusedBeforeAccount = null;
+
+  function accountPageOpen() {
+    return !accountPageEl.hidden;
+  }
+
+  function resetProfileState() {
+    profile = null;
+    profileExists = false;
+    profileState = "idle";
+    profileRequest += 1;
+    addressForm.reset();
+    $$(".field", addressForm).forEach((field) => setFieldError(field, ""));
+    setFormStatus($("#apSaveStatus"), "", "");
+    setFormStatus($("#apLoadStatus"), "", "");
+    setFormStatus($("#apAccountStatus"), "", "");
+  }
+
+  function formatCep(digits) {
+    const d = (digits || "").replace(/\D/g, "").slice(0, 8);
+    return d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d;
+  }
+
+  function addressInput(name) {
+    return $('[data-field="' + name + '"]', addressForm);
+  }
+
+  // Escreve no formulário os dados do perfil carregado
+  function fillAddressForm() {
+    ADDRESS_FIELDS.forEach(function (name) {
+      const value = profile && profile[name] ? profile[name] : "";
+      addressInput(name).value = name === "cep" ? formatCep(value) : value;
+    });
+  }
+
+  function renderAccountPage() {
+    if (!currentUser) {
+      $("#apName").textContent = "";
+      $("#apEmail").textContent = "";
+      $("#apAvatar").textContent = "";
+      return;
+    }
+    const name = currentName();
+    $("#apName").textContent = name;
+    $("#apEmail").textContent = currentUser.email || "";
+    $("#apAvatar").textContent = (name.charAt(0) || "?").toUpperCase();
+
+    const ready = profileState === "ready";
+    $$("input, select", addressForm).forEach((el) => (el.disabled = !ready));
+    $("#apSave").disabled = !ready || profileBusy;
+
+    const loadStatus = $("#apLoadStatus");
+    if (profileState === "loading") {
+      setFormStatus(loadStatus, "info", "Carregando seu endereço…");
+    } else if (profileState === "error") {
+      setFormStatus(loadStatus, "error", "Não foi possível carregar seus dados agora. ");
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "auth__retry";
+      retry.textContent = "Tentar novamente";
+      retry.addEventListener("click", loadProfile);
+      loadStatus.appendChild(retry);
+    } else {
+      setFormStatus(loadStatus, "", "");
+    }
+  }
+
+  function profileErrorMessage(error, saving) {
+    const code = ((error && error.code) || "").toString();
+    const text = ((error && error.message) || "").toLowerCase();
+    if (code === "PGRST205" || code === "42P01" || text.indexOf("could not find the table") !== -1) {
+      console.warn("[URBAN VIBE] Tabela public.profiles não encontrada: execute o arquivo supabase-profiles.sql no SQL Editor do Supabase.");
+      return "O cadastro de endereço ainda não está disponível. Tente novamente mais tarde.";
+    }
+    if (error && (error.name === "AuthRetryableFetchError" || text.indexOf("failed to fetch") !== -1 || text.indexOf("network") !== -1)) {
+      return "Não foi possível conectar. Verifique sua internet e tente novamente.";
+    }
+    if (code === "42501" || text.indexOf("row-level security") !== -1 || text.indexOf("permission denied") !== -1) {
+      return "Sua sessão não tem permissão para isso. Saia e entre novamente na conta.";
+    }
+    if (code === "23514") return "Algum campo está em formato inválido. Confira os dados e tente de novo.";
+    return saving ? "Não foi possível salvar agora. Tente novamente em instantes." : "Não foi possível carregar seus dados agora.";
+  }
+
+  // Busca o perfil da pessoa logada (a RLS já devolve só a própria linha; o .eq("id") reforça)
+  async function loadProfile() {
+    if (!sb || !currentUser) return;
+    const uid = currentUser.id;
+    const request = ++profileRequest;
+    profileState = "loading";
+    renderAccountPage();
+
+    let nextState = "ready";
+    let row = null;
+    try {
+      const result = await sb.from("profiles").select(PROFILE_SELECT).eq("id", uid).maybeSingle();
+      if (result.error) throw result.error;
+      row = result.data;
+    } catch (error) {
+      nextState = "error";
+      console.warn("[URBAN VIBE] Falha ao carregar perfil:", error && error.message);
+    }
+
+    // Se a sessão mudou enquanto a resposta vinha, ignora (nunca mostra dados de outra pessoa)
+    if (request !== profileRequest || !currentUser || currentUser.id !== uid) return;
+    profileState = nextState;
+    if (nextState === "ready") {
+      profile = row;
+      profileExists = Boolean(row);
+      fillAddressForm();
+      updateHeaderAccount();
+    }
+    renderAccountPage();
+  }
+
+  function cleanText(value) {
+    return value.replace(/\s+/g, " ").trim();
+  }
+
+  function validateAddress() {
+    const values = {};
+    ADDRESS_FIELDS.forEach(function (name) {
+      const raw = addressInput(name).value;
+      values[name] = name === "cep" ? raw.replace(/\D/g, "") : name === "state" ? raw.trim().toUpperCase() : cleanText(raw);
+    });
+    const anyFilled = ADDRESS_FIELDS.some((name) => values[name] !== "");
+    let firstInvalid = null;
+
+    ADDRESS_FIELDS.forEach(function (name) {
+      const input = addressInput(name);
+      let message = "";
+      if (anyFilled && ADDRESS_REQUIRED.indexOf(name) !== -1 && !values[name]) message = "Preencha este campo.";
+      else if (name === "cep" && values.cep && values.cep.length !== 8) message = "CEP inválido. Use 8 números.";
+      else if (name === "state" && values.state && UF_LIST.indexOf(values.state) === -1) message = "Escolha um estado.";
+      setFieldError(input.closest(".field"), message);
+      if (message && !firstInvalid) firstInvalid = input;
+    });
+
+    if (firstInvalid) {
+      firstInvalid.focus();
+      return null;
+    }
+    return values;
+  }
+
+  async function saveAddress() {
+    if (!sb || !currentUser || profileBusy || profileState !== "ready") return;
+    const values = validateAddress();
+    const status = $("#apSaveStatus");
+    setFormStatus(status, "", "");
+    if (!values) return;
+
+    const uid = currentUser.id;
+    const payload = {};
+    ADDRESS_FIELDS.forEach((name) => (payload[name] = values[name] === "" ? null : values[name]));
+
+    profileBusy = true;
+    const button = $("#apSave");
+    button.dataset.label = button.textContent;
+    button.textContent = "Salvando…";
+    button.classList.add("is-loading");
+    button.disabled = true;
+    try {
+      let result;
+      if (profileExists) {
+        // .select() devolve a linha alterada: se vier vazio, a RLS bloqueou e nada foi salvo
+        result = await sb.from("profiles").update(payload).eq("id", uid).select("id");
+        if (!result.error && (!result.data || result.data.length === 0)) {
+          throw { code: "42501", message: "row-level security" };
+        }
+      } else {
+        // Perfil ainda não existe (ex.: conta antiga): cria a própria linha
+        const insertRow = Object.assign({ id: uid, full_name: currentName() }, payload);
+        result = await sb.from("profiles").insert(insertRow);
+      }
+      if (result.error) throw result.error;
+
+      if (!currentUser || currentUser.id !== uid) return;
+      profile = Object.assign({}, profile || { full_name: currentName() }, payload);
+      profileExists = true;
+      fillAddressForm();
+      setFormStatus(status, "success", "Endereço salvo com sucesso!");
+      showToast("Endereço salvo com sucesso!");
+    } catch (error) {
+      setFormStatus(status, "error", profileErrorMessage(error, true));
+    } finally {
+      profileBusy = false;
+      button.textContent = button.dataset.label || "Salvar alterações";
+      button.classList.remove("is-loading");
+      renderAccountPage();
+    }
+  }
+
+  // Abre a página Minha conta (a loja fica oculta enquanto ela está aberta)
+  function openAccountPage(opts) {
+    const options = opts || {};
+    if (!currentUser) {
+      openAuth("login");
+      return;
+    }
+    closeMenu();
+    if (cartEl.classList.contains("is-open")) closeCart();
+    closeProductUI();
+    closeAuthUI();
+
+    const alreadyOpen = accountPageOpen();
+    if (!alreadyOpen) {
+      lastFocusedBeforeAccount = document.activeElement;
+      accountScrollY = window.scrollY;
+      document.body.classList.add("view-account");
+      accountPageEl.hidden = false;
+      window.scrollTo(0, 0);
+    }
+
+    try {
+      if (options.replace) replaceRoute("#minha-conta", { urbanAccount: true });
+      else if (options.push !== false && !alreadyOpen) history.pushState({ urbanAccount: true }, "", "#minha-conta");
+    } catch (error) {
+      /* ambiente sem suporte a histórico: a página funciona sem ele */
+    }
+
+    renderAccountPage();
+    if (profileState === "idle" || profileState === "error") loadProfile();
+    $("#apTitle").focus({ preventScroll: true });
+  }
+
+  function closeAccountPageUI() {
+    if (!accountPageOpen()) return false;
+    accountPageEl.hidden = true;
+    document.body.classList.remove("view-account");
+    setFormStatus($("#apSaveStatus"), "", "");
+    setFormStatus($("#apAccountStatus"), "", "");
+    window.scrollTo(0, accountScrollY); // volta para onde a pessoa estava na loja
+    if (lastFocusedBeforeAccount && typeof lastFocusedBeforeAccount.focus === "function" && document.contains(lastFocusedBeforeAccount)) {
+      lastFocusedBeforeAccount.focus({ preventScroll: true });
+    }
+    return true;
+  }
+
+  function closeAccountPage() {
+    if (!closeAccountPageUI()) return;
+    if (history.state && history.state.urbanAccount) {
+      history.back();
+    } else if (ACCOUNT_HASH.test(location.hash)) {
+      try {
+        history.replaceState(null, "", location.pathname + location.search);
+      } catch (error) {
+        /* ignora */
+      }
+    }
+  }
+
+  function initAccountPage() {
+    $("#apBack").addEventListener("click", closeAccountPage);
+    $("#apLogout").addEventListener("click", function () {
+      handleLogout(this);
+    });
+
+    addressForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      saveAddress();
+    });
+
+    // Máscara do CEP (00000-000) e limpeza do aviso ao digitar
+    addressForm.addEventListener("input", function (event) {
+      if (event.target.dataset.field === "cep") event.target.value = formatCep(event.target.value);
+      const field = event.target.closest(".field");
+      if (field && field.classList.contains("is-invalid")) setFieldError(field, "");
+      setFormStatus($("#apSaveStatus"), "", "");
+    });
+    addressForm.addEventListener("change", function () {
+      setFormStatus($("#apSaveStatus"), "", "");
+    });
+  }
+
+  // Mantém produto, login/cadastro/recuperação e Minha conta sincronizados com o endereço
   function syncFromLocation() {
     const authMatch = AUTH_HASH.exec(location.hash);
     const productMatch = PRODUCT_HASH.exec(location.hash);
 
-    if (authMatch) {
+    if (ACCOUNT_HASH.test(location.hash)) {
+      if (!sessionChecked) return; // espera o Supabase dizer se há sessão salva
+      if (!currentUser) {
+        try {
+          replaceRoute("#login", { urbanAuth: "login" });
+        } catch (error) {
+          /* ignora */
+        }
+        openAuth("login", { push: false });
+      } else {
+        openAccountPage({ push: false });
+      }
+    } else if (authMatch) {
+      if (!sessionChecked) return; // espera saber se há sessão (evita abrir "login" para quem já está logado)
       openAuth(authMatch[1], { push: false });
     } else if (productMatch && getProduct(parseInt(productMatch[1], 10))) {
+      closeAccountPageUI();
       openProduct(parseInt(productMatch[1], 10), { push: false });
     } else {
       closeProductUI();
       closeAuthUI();
+      // Saiu da Minha conta por um link do menu (ex.: #destaques): leva até a seção pedida
+      if (closeAccountPageUI() && location.hash.length > 1) {
+        const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        if (target) target.scrollIntoView();
+      }
     }
   }
 
@@ -1461,6 +2173,7 @@
     initProductModal();
     initGallery();
     initAuth();
+    initAccountPage();
     initRouting();
     initRevealOnScroll();
   });
