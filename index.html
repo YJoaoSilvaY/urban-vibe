@@ -35,6 +35,7 @@
             <circle cx="12" cy="8" r="4"></circle>
             <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
           </svg>
+          <span class="account-btn__initial" id="accountInitial" aria-hidden="true" hidden></span>
         </button>
         <button class="cart-btn" id="cartOpen" aria-label="Abrir carrinho">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -49,6 +50,97 @@
       </div>
     </div>
   </header>
+
+  <!-- ================= MINHA CONTA (página do cliente, só com login) ================= -->
+  <section class="account-page" id="accountPage" aria-labelledby="apTitle" hidden>
+    <div class="account-page__hero">
+      <div class="container">
+        <p class="account-page__eyebrow">Área do cliente</p>
+        <h1 class="account-page__title" id="apTitle" tabindex="-1">Minha conta</h1>
+      </div>
+    </div>
+
+    <div class="container account-page__grid">
+      <aside class="ap-card ap-card--profile" aria-label="Dados da conta">
+        <span class="account__avatar" id="apAvatar" aria-hidden="true"></span>
+        <p class="ap-label">Nome completo</p>
+        <p class="ap-value" id="apName"></p>
+        <p class="ap-label">E-mail da conta</p>
+        <p class="ap-value" id="apEmail"></p>
+        <p class="auth__status" id="apAccountStatus" role="status" aria-live="polite" hidden></p>
+        <div class="ap-actions">
+          <button type="button" class="btn btn--ghost btn--block" id="apBack">Voltar à loja</button>
+          <button type="button" class="btn btn--dark btn--block" id="apLogout">Sair da conta</button>
+        </div>
+      </aside>
+
+      <div class="ap-card">
+        <h2 class="ap-title">Meu endereço</h2>
+        <p class="auth__sub">Mantenha seu endereço de entrega salvo na sua conta.</p>
+        <p class="auth__status" id="apLoadStatus" role="status" aria-live="polite" hidden></p>
+
+        <form class="ap-form" id="addressForm" novalidate>
+          <div class="ap-form__grid">
+            <div class="field field--cep">
+              <label class="field__label" for="adCep">CEP</label>
+              <div class="field__control">
+                <input class="field__input" id="adCep" type="text" data-field="cep" placeholder="00000-000" autocomplete="postal-code" inputmode="numeric" maxlength="9">
+              </div>
+              <p class="field__error" id="adCep-err" role="alert"></p>
+            </div>
+            <div class="field field--street">
+              <label class="field__label" for="adStreet">Rua</label>
+              <div class="field__control">
+                <input class="field__input" id="adStreet" type="text" data-field="street" placeholder="Nome da rua" autocomplete="address-line1" maxlength="120">
+              </div>
+              <p class="field__error" id="adStreet-err" role="alert"></p>
+            </div>
+            <div class="field field--num">
+              <label class="field__label" for="adNumber">Número</label>
+              <div class="field__control">
+                <input class="field__input" id="adNumber" type="text" data-field="number" placeholder="123" autocomplete="address-line2" maxlength="20">
+              </div>
+              <p class="field__error" id="adNumber-err" role="alert"></p>
+            </div>
+            <div class="field field--comp">
+              <label class="field__label" for="adComplement">Complemento</label>
+              <div class="field__control">
+                <input class="field__input" id="adComplement" type="text" data-field="complement" placeholder="Apto, bloco… (opcional)" autocomplete="off" maxlength="60">
+              </div>
+              <p class="field__error" id="adComplement-err" role="alert"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="adNeighborhood">Bairro</label>
+              <div class="field__control">
+                <input class="field__input" id="adNeighborhood" type="text" data-field="neighborhood" placeholder="Seu bairro" autocomplete="off" maxlength="80">
+              </div>
+              <p class="field__error" id="adNeighborhood-err" role="alert"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="adCity">Cidade</label>
+              <div class="field__control">
+                <input class="field__input" id="adCity" type="text" data-field="city" placeholder="Sua cidade" autocomplete="address-level2" maxlength="80">
+              </div>
+              <p class="field__error" id="adCity-err" role="alert"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="adState">Estado</label>
+              <div class="field__control field__control--select">
+                <select class="field__input field__select" id="adState" data-field="state" autocomplete="address-level1">
+                  <option value="">Selecione</option>
+                  <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option><option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option><option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option><option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option><option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option><option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+                </select>
+              </div>
+              <p class="field__error" id="adState-err" role="alert"></p>
+            </div>
+          </div>
+
+          <p class="auth__status" id="apSaveStatus" role="status" aria-live="polite" hidden></p>
+          <button type="submit" class="btn btn--dark ap-save" id="apSave">Salvar alterações</button>
+        </form>
+      </div>
+    </div>
+  </section>
 
   <main>
 
@@ -306,23 +398,24 @@
           <h2 class="auth__title" id="loginTitle">Entrar</h2>
           <p class="auth__sub">Acesse sua conta e continue no ritmo da rua.</p>
 
-          <form class="auth__form" data-form="login" novalidate autocomplete="off">
+          <form class="auth__form" data-form="login" novalidate>
             <div class="field">
               <label class="field__label" for="loginEmail">E-mail</label>
               <div class="field__control">
-                <input class="field__input" id="loginEmail" type="email" data-type="email" data-role="email" placeholder="voce@email.com" autocomplete="off" inputmode="email" aria-describedby="loginEmail-err" autocapitalize="off" spellcheck="false">
+                <input class="field__input" id="loginEmail" type="email" data-type="email" data-role="email" placeholder="voce@email.com" autocomplete="username" inputmode="email" aria-describedby="loginEmail-err" autocapitalize="off" spellcheck="false">
               </div>
               <p class="field__error" id="loginEmail-err" role="alert"></p>
             </div>
             <div class="field">
               <label class="field__label" for="loginPassword">Senha</label>
               <div class="field__control">
-                <input class="field__input" id="loginPassword" type="password" data-type="password" data-role="password" placeholder="Sua senha" autocomplete="off" aria-describedby="loginPassword-err" autocapitalize="off" spellcheck="false">
+                <input class="field__input" id="loginPassword" type="password" data-type="password" data-role="password" placeholder="Sua senha" autocomplete="current-password" aria-describedby="loginPassword-err" autocapitalize="off" spellcheck="false">
                 <button type="button" class="field__toggle" aria-pressed="false" aria-label="Mostrar ou ocultar senha">Mostrar</button>
               </div>
               <p class="field__error" id="loginPassword-err" role="alert"></p>
             </div>
             <button type="button" class="auth__forgot" id="forgotPassword">Esqueci minha senha</button>
+            <p class="auth__status" role="status" aria-live="polite" hidden></p>
             <button type="submit" class="btn btn--dark btn--block">Entrar</button>
           </form>
 
@@ -334,25 +427,25 @@
           <h2 class="auth__title" id="registerTitle">Criar conta</h2>
           <p class="auth__sub">Cadastre-se para acompanhar lançamentos e pedidos.</p>
 
-          <form class="auth__form" data-form="register" novalidate autocomplete="off">
+          <form class="auth__form" data-form="register" novalidate>
             <div class="field">
               <label class="field__label" for="regName">Nome completo</label>
               <div class="field__control">
-                <input class="field__input" id="regName" type="text" data-type="text" data-role="name" placeholder="Seu nome completo" autocomplete="off" aria-describedby="regName-err" autocapitalize="off" spellcheck="false">
+                <input class="field__input" id="regName" type="text" data-type="text" data-role="name" placeholder="Seu nome completo" autocomplete="name" aria-describedby="regName-err" autocapitalize="off" spellcheck="false">
               </div>
               <p class="field__error" id="regName-err" role="alert"></p>
             </div>
             <div class="field">
               <label class="field__label" for="regEmail">E-mail</label>
               <div class="field__control">
-                <input class="field__input" id="regEmail" type="email" data-type="email" data-role="email" placeholder="voce@email.com" autocomplete="off" inputmode="email" aria-describedby="regEmail-err" autocapitalize="off" spellcheck="false">
+                <input class="field__input" id="regEmail" type="email" data-type="email" data-role="email" placeholder="voce@email.com" autocomplete="email" inputmode="email" aria-describedby="regEmail-err" autocapitalize="off" spellcheck="false">
               </div>
               <p class="field__error" id="regEmail-err" role="alert"></p>
             </div>
             <div class="field">
               <label class="field__label" for="regPassword">Senha</label>
               <div class="field__control">
-                <input class="field__input" id="regPassword" type="password" data-type="password" data-role="password" placeholder="Mínimo de 8 caracteres" autocomplete="off" aria-describedby="regPassword-err" autocapitalize="off" spellcheck="false">
+                <input class="field__input" id="regPassword" type="password" data-type="password" data-role="password" placeholder="Mínimo de 8 caracteres" autocomplete="new-password" aria-describedby="regPassword-err" autocapitalize="off" spellcheck="false">
                 <button type="button" class="field__toggle" aria-pressed="false" aria-label="Mostrar ou ocultar senha">Mostrar</button>
               </div>
               <p class="field__error" id="regPassword-err" role="alert"></p>
@@ -360,21 +453,70 @@
             <div class="field">
               <label class="field__label" for="regConfirm">Confirmar senha</label>
               <div class="field__control">
-                <input class="field__input" id="regConfirm" type="password" data-type="password" data-role="confirm" placeholder="Repita a senha" autocomplete="off" aria-describedby="regConfirm-err" autocapitalize="off" spellcheck="false">
+                <input class="field__input" id="regConfirm" type="password" data-type="password" data-role="confirm" placeholder="Repita a senha" autocomplete="new-password" aria-describedby="regConfirm-err" autocapitalize="off" spellcheck="false">
                 <button type="button" class="field__toggle" aria-pressed="false" aria-label="Mostrar ou ocultar senha">Mostrar</button>
               </div>
               <p class="field__error" id="regConfirm-err" role="alert"></p>
             </div>
+            <p class="auth__privacy">Usamos seu nome e e-mail apenas para criar e identificar sua conta na URBAN VIBE. Sua senha é armazenada de forma criptografada.</p>
+            <p class="auth__status" role="status" aria-live="polite" hidden></p>
             <button type="submit" class="btn btn--dark btn--block">Criar conta</button>
           </form>
 
           <p class="auth__switch">Já possui uma conta? <a href="#login" data-auth-view="login">Faça login</a></p>
         </section>
 
-        <p class="auth__note">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>
-          Versão de demonstração: nenhum dado é enviado nem salvo.
-        </p>
+        <!-- Recuperação de senha: pedir o link por e-mail -->
+        <section class="auth__panel" data-view="recuperar" hidden>
+          <h2 class="auth__title" id="recoverTitle">Recuperar senha</h2>
+          <p class="auth__sub">Informe o e-mail da sua conta e enviaremos um link para criar uma nova senha.</p>
+
+          <form class="auth__form" data-form="recover" novalidate>
+            <div class="field">
+              <label class="field__label" for="recEmail">E-mail</label>
+              <div class="field__control">
+                <input class="field__input" id="recEmail" type="email" data-type="email" data-role="email" placeholder="voce@email.com" autocomplete="email" inputmode="email" aria-describedby="recEmail-err" autocapitalize="off" spellcheck="false">
+              </div>
+              <p class="field__error" id="recEmail-err" role="alert"></p>
+            </div>
+            <p class="auth__status" role="status" aria-live="polite" hidden></p>
+            <button type="submit" class="btn btn--dark btn--block">Enviar link de recuperação</button>
+          </form>
+
+          <p class="auth__switch">Lembrou a senha? <a href="#login" data-auth-view="login">Voltar ao login</a></p>
+        </section>
+
+        <!-- Nova senha (aberta pelo link recebido por e-mail) -->
+        <section class="auth__panel" data-view="nova-senha" hidden>
+          <h2 class="auth__title" id="newPassTitle">Nova senha</h2>
+          <p class="auth__sub">Escolha uma nova senha para a sua conta URBAN VIBE.</p>
+
+          <form class="auth__form" data-form="newpass" novalidate>
+            <div class="field">
+              <label class="field__label" for="newPassword">Nova senha</label>
+              <div class="field__control">
+                <input class="field__input" id="newPassword" type="password" data-type="password" data-role="password" placeholder="Mínimo de 8 caracteres" autocomplete="new-password" aria-describedby="newPassword-err" autocapitalize="off" spellcheck="false">
+                <button type="button" class="field__toggle" aria-pressed="false" aria-label="Mostrar ou ocultar senha">Mostrar</button>
+              </div>
+              <p class="field__error" id="newPassword-err" role="alert"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="newConfirm">Confirmar nova senha</label>
+              <div class="field__control">
+                <input class="field__input" id="newConfirm" type="password" data-type="password" data-role="confirm" placeholder="Repita a nova senha" autocomplete="new-password" aria-describedby="newConfirm-err" autocapitalize="off" spellcheck="false">
+                <button type="button" class="field__toggle" aria-pressed="false" aria-label="Mostrar ou ocultar senha">Mostrar</button>
+              </div>
+              <p class="field__error" id="newConfirm-err" role="alert"></p>
+            </div>
+            <p class="auth__status" role="status" aria-live="polite" hidden></p>
+            <button type="submit" class="btn btn--dark btn--block">Salvar nova senha</button>
+          </form>
+
+          <div class="auth__done" id="newPassDone" hidden>
+            <p class="auth__status is-success" role="status">Senha atualizada com sucesso! Entre com a nova senha.</p>
+            <button type="button" class="btn btn--dark btn--block" data-auth-view="login">Ir para o login</button>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -382,6 +524,8 @@
   <!-- ================= AVISO (TOAST) ================= -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <!-- Supabase (autenticação). Biblioteca oficial via CDN, versão fixa, sem build. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
