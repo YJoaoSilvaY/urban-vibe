@@ -84,8 +84,9 @@
             <div class="field field--cep">
               <label class="field__label" for="adCep">CEP</label>
               <div class="field__control">
-                <input class="field__input" id="adCep" type="text" data-field="cep" placeholder="00000-000" autocomplete="postal-code" inputmode="numeric" maxlength="9">
+                <input class="field__input" id="adCep" type="text" data-field="cep" placeholder="00000-000" autocomplete="postal-code" inputmode="numeric" maxlength="9" aria-describedby="adCep-hint">
               </div>
+              <p class="field__hint" id="adCep-hint" role="status" aria-live="polite"></p>
               <p class="field__error" id="adCep-err" role="alert"></p>
             </div>
             <div class="field field--street">
