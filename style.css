@@ -2850,3 +2850,48 @@ body.view-catalog main {
     padding: 0 16px;
   }
 }
+
+/* ---------- 13. BUSCA DE CEP (ViaCEP) ---------- */
+.field__hint {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--grey-500);
+}
+
+.field__hint:empty {
+  display: none;
+}
+
+.field__hint.is-loading::before {
+  content: "";
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  margin-right: 8px;
+  vertical-align: -1px;
+  border: 2px solid var(--grey-300);
+  border-top-color: var(--black);
+  border-radius: 50%;
+  animation: cepSpin 0.7s linear infinite;
+}
+
+.field__hint.is-success {
+  color: var(--grey-700);
+}
+
+.field__hint.is-success::before {
+  content: "✓ ";
+  font-weight: 800;
+}
+
+@keyframes cepSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field__hint.is-loading::before {
+    animation: none;
+  }
+}
