@@ -142,6 +142,71 @@
     </div>
   </section>
 
+  <!-- ================= PÁGINA DE CATEGORIA (catálogo) ================= -->
+  <section class="catalog-page" id="catalogPage" aria-labelledby="cpTitle" hidden>
+    <div class="account-page__hero catalog-page__hero">
+      <div class="container">
+        <nav class="catalog-crumbs" aria-label="Você está em">
+          <a href="#inicio" id="cpHome">Início</a>
+          <span aria-hidden="true">/</span>
+          <span id="cpCrumb" aria-current="page"></span>
+        </nav>
+        <p class="account-page__eyebrow">Coleção</p>
+        <h1 class="account-page__title" id="cpTitle" tabindex="-1"></h1>
+        <nav class="catalog-tabs" aria-label="Categorias">
+          <a href="#categoria-masculino" data-cat="masculino">Masculino</a>
+          <a href="#categoria-feminino" data-cat="feminino">Feminino</a>
+          <a href="#categoria-acessorios" data-cat="acessorios">Acessórios</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="container catalog-page__body">
+      <form class="catalog-filters" id="cpFilters" role="search" aria-label="Filtrar produtos" novalidate>
+        <label class="cf cf--search">
+          <span class="cf__label">Buscar por nome</span>
+          <input class="field__input" type="search" id="cpSearch" placeholder="Ex.: cargo, moletom, boné" autocomplete="off" maxlength="60">
+        </label>
+        <label class="cf">
+          <span class="cf__label">Tamanho</span>
+          <select class="field__input" id="cpSize"></select>
+        </label>
+        <div class="cf cf--price" role="group" aria-label="Faixa de preço">
+          <span class="cf__label">Preço (R$)</span>
+          <div class="cf__range">
+            <input class="field__input" type="number" id="cpMin" min="0" step="1" inputmode="numeric" placeholder="Mín." aria-label="Preço mínimo em reais">
+            <span aria-hidden="true">–</span>
+            <input class="field__input" type="number" id="cpMax" min="0" step="1" inputmode="numeric" placeholder="Máx." aria-label="Preço máximo em reais">
+          </div>
+        </div>
+        <label class="cf">
+          <span class="cf__label">Ordenar por</span>
+          <select class="field__input" id="cpSort">
+            <option value="destaque">Em destaque</option>
+            <option value="menor">Menor preço</option>
+            <option value="maior">Maior preço</option>
+            <option value="recentes">Mais recentes</option>
+          </select>
+        </label>
+      </form>
+
+      <div class="catalog-bar">
+        <p class="catalog-bar__count" id="cpCount" role="status" aria-live="polite"></p>
+        <button type="button" class="catalog-bar__clear" id="cpClear" hidden>Limpar filtros</button>
+      </div>
+
+      <div class="products products--catalog" id="catalogGrid"></div>
+
+      <div class="catalog-empty" id="cpEmpty" hidden>
+        <h2>Nenhum produto encontrado</h2>
+        <p>Tente outro nome, tamanho ou faixa de preço.</p>
+        <button type="button" class="btn btn--dark" id="cpEmptyClear">Limpar filtros</button>
+      </div>
+
+      <p class="catalog-back"><a href="#inicio" class="btn btn--ghost">← Voltar à página inicial</a></p>
+    </div>
+  </section>
+
   <main>
 
     <!-- ================= BANNER PRINCIPAL ================= -->
@@ -189,21 +254,21 @@
         </div>
 
         <div class="categories">
-          <a href="#destaques" class="category reveal" data-filter="masculino">
+          <a href="#categoria-masculino" class="category reveal" data-category="masculino">
             <img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=900&q=80" alt="Coleção masculina" loading="lazy">
             <div class="category__info">
               <h3>Masculino</h3>
               <span>Ver peças →</span>
             </div>
           </a>
-          <a href="#destaques" class="category reveal" data-filter="feminino">
+          <a href="#categoria-feminino" class="category reveal" data-category="feminino">
             <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80" alt="Coleção feminina" loading="lazy">
             <div class="category__info">
               <h3>Feminino</h3>
               <span>Ver peças →</span>
             </div>
           </a>
-          <a href="#destaques" class="category reveal" data-filter="acessorios">
+          <a href="#categoria-acessorios" class="category reveal" data-category="acessorios">
             <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=900&q=80" alt="Acessórios streetwear" loading="lazy">
             <div class="category__info">
               <h3>Acessórios</h3>
@@ -222,15 +287,15 @@
           <h2 class="section__title">Produtos em destaque</h2>
         </div>
 
-        <div class="filters reveal" role="tablist" aria-label="Filtrar produtos">
-          <button class="filter is-active" data-filter="todos" role="tab" aria-selected="true">Todos</button>
-          <button class="filter" data-filter="masculino" role="tab" aria-selected="false">Masculino</button>
-          <button class="filter" data-filter="feminino" role="tab" aria-selected="false">Feminino</button>
-          <button class="filter" data-filter="acessorios" role="tab" aria-selected="false">Acessórios</button>
+        <div class="products products--featured" id="productGrid">
+          <!-- Os cards são gerados pelo script.js -->
         </div>
 
-        <div class="products" id="productGrid" aria-live="polite">
-          <!-- Os cards são gerados pelo script.js -->
+        <div class="featured__more reveal">
+          <span>Ver coleção completa</span>
+          <a href="#categoria-masculino" class="btn btn--ghost">Masculino</a>
+          <a href="#categoria-feminino" class="btn btn--ghost">Feminino</a>
+          <a href="#categoria-acessorios" class="btn btn--ghost">Acessórios</a>
         </div>
       </div>
     </section>
@@ -283,9 +348,9 @@
       <div class="footer__col">
         <h4>Loja</h4>
         <ul>
-          <li><a href="#categorias">Masculino</a></li>
-          <li><a href="#categorias">Feminino</a></li>
-          <li><a href="#categorias">Acessórios</a></li>
+          <li><a href="#categoria-masculino">Masculino</a></li>
+          <li><a href="#categoria-feminino">Feminino</a></li>
+          <li><a href="#categoria-acessorios">Acessórios</a></li>
           <li><a href="#destaques">Destaques</a></li>
         </ul>
       </div>
