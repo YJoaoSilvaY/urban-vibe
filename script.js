@@ -29,8 +29,12 @@
   const SIZES_CLOTHING = ["P", "M", "G", "GG"];
   const SIZES_ONE = ["Único"];
 
-  // Cada produto tem 2 fotos: a foto principal (image) e o "zoom do material" (material),
-  // gerado no próprio código na cor exata do produto. Para mudar a cor do zoom, edite material.color.
+  // Campos de cada produto: id, name, category (masculino | feminino | acessorios), type, price, badge,
+  // sizes, description, details, added (data de lançamento: usada em "Mais recentes"),
+  // featured (true = aparece em "Produtos em destaque" na página inicial) e as imagens:
+  //   - image: foto principal (opcional). Sem "image", a vista frontal é gerada a partir de "art".
+  //   - art: { kind, color, ... } gera as vistas frontal e de costas na cor do produto.
+  //   - images: ["url1", "url2"] (opcional) troca as duas imagens por fotos reais suas.
   const PRODUCTS = [
     {
       id: 1,
@@ -40,7 +44,8 @@
       price: 129.9,
       badge: "Novo",
       image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "jersey", color: "#0f0f0f", label: "Malha de algodão preta" },
+      added: "2026-09-20",
+      art: { kind: "tee", color: "#0f0f0f" },
       sizes: SIZES_CLOTHING,
       description:
         "A base de todo look URBAN VIBE. Modelagem oversized com ombro caído e caimento solto, feita em algodão encorpado que mantém a forma lavagem após lavagem. Preta profunda, sem estampa: combina com tudo e aguenta a rotina da rua do primeiro ao último rolê.",
@@ -59,7 +64,9 @@
       price: 289.9,
       badge: "Mais vendido",
       image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "fleece", color: "#141414", label: "Moletom flanelado preto" },
+      added: "2026-08-10",
+      featured: true,
+      art: { kind: "hoodie", color: "#141414" },
       sizes: SIZES_CLOTHING,
       description:
         "O hoodie que virou uniforme. Moletom felpudo por dentro, capuz estruturado com cordão chato e bolso canguru fundo para as mãos e para o celular. Corte levemente amplo, pensado para usar sobre uma camiseta ou sozinho nos dias frios.",
@@ -78,7 +85,8 @@
       price: 349.9,
       badge: "",
       image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "ripstop", color: "#1c1c1c", label: "Ripstop grafite" },
+      added: "2026-09-05",
+      art: { kind: "jacket", color: "#1c1c1c", style: "wind" },
       sizes: SIZES_CLOTHING,
       description:
         "Leve, rápida e pronta para a garoa da cidade. Tecido que repele a água, capuz embutido na gola e zíperes firmes. Cabe fácil na mochila e entra em cena quando o tempo vira, sem pesar no resto do look.",
@@ -97,7 +105,9 @@
       price: 259.9,
       badge: "",
       image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "twill", color: "#8a8a86", label: "Sarja cinza concreto" },
+      added: "2026-08-25",
+      featured: true,
+      art: { kind: "pants", color: "#8a8a86", style: "cargo" },
       sizes: SIZES_CLOTHING,
       description:
         "Cargo com alma de skate. Cinza concreto, bolsos laterais volumosos e perna reta ampla que cai bem sobre tênis ou bota. Sarja firme, cós com ajuste interno e barra com cordão para você escolher entre o visual solto ou mais justo.",
@@ -116,7 +126,8 @@
       price: 119.9,
       badge: "Novo",
       image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "jersey", color: "#f2f2ee", label: "Malha de algodão branca" },
+      added: "2026-09-28",
+      art: { kind: "tee", color: "#f2f2ee", crop: true },
       sizes: SIZES_CLOTHING,
       description:
         "Branco limpo, corte boxy e comprimento cropped na medida. Malha encorpada que não marca nem transparece, ideal para camadas sob jaquetas ou com calça de cintura alta. Simples, afiada e feita para repetir a semana inteira.",
@@ -135,7 +146,8 @@
       price: 279.9,
       badge: "",
       image: "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "fleece", color: "#9a9a98", label: "Moletom cinza lavado" },
+      added: "2026-07-15",
+      art: { kind: "hoodie", color: "#9a9a98" },
       sizes: SIZES_CLOTHING,
       description:
         "Cinza lavado com cara de peça vintage desde o primeiro dia. Moletom oversized de ombro caído e gola alta, com efeito stone wash que deixa cada peça um pouco diferente da outra. Conforto de casa, presença de rua.",
@@ -154,7 +166,9 @@
       price: 239.9,
       badge: "Mais vendido",
       image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "twill", color: "#2b2b2b", label: "Sarja grafite" },
+      added: "2026-08-18",
+      featured: true,
+      art: { kind: "pants", color: "#2b2b2b", style: "wide" },
       sizes: SIZES_CLOTHING,
       description:
         "Perna larga, cintura alta e movimento de sobra. A wide leg URBAN VIBE tem tecido de caimento fluido, cós confortável e comprimento pensado para tênis volumoso. Alonga a silhueta e vai do rolê ao trabalho criativo sem trocar de roupa.",
@@ -173,7 +187,9 @@
       price: 369.9,
       badge: "Edição limitada",
       image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "satin", color: "#0b0b0b", label: "Nylon acetinado preto" },
+      added: "2026-09-12",
+      featured: true,
+      art: { kind: "jacket", color: "#0b0b0b", style: "bomber" },
       sizes: SIZES_CLOTHING,
       description:
         "Edição limitada em preto total. Bomber clássica com gola e punhos em ribana, forro acetinado e zíper metálico escovado. Um volume que impõe respeito e combina do cropped ao moletom. Quando acabar, acabou.",
@@ -192,7 +208,9 @@
       price: 89.9,
       badge: "",
       image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "twill", color: "#1a1a1a", label: "Sarja de algodão preta" },
+      added: "2026-07-01",
+      featured: true,
+      art: { kind: "cap", color: "#1a1a1a", style: "dad" },
       sizes: SIZES_ONE,
       description:
         "Aba curva, copa baixa e bordado discreto da marca na frente. O dad hat é o acessório que fecha o look sem pesar: regulagem metálica atrás, tecido macio e uma cor que conversa com preto, branco e cinza.",
@@ -211,7 +229,9 @@
       price: 159.9,
       badge: "Novo",
       image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "basket", color: "#111111", label: "Nylon trançado preto" },
+      added: "2026-09-30",
+      featured: true,
+      art: { kind: "crossbody", color: "#111111" },
       sizes: SIZES_ONE,
       description:
         "Pequena por fora, esperta por dentro. A utility cruza o corpo e guarda celular, carteira, chaves e fones em compartimentos separados. Nylon resistente, alça ajustável e zíperes firmes: feita para andar de metrô, de bike ou a pé.",
@@ -230,7 +250,8 @@
       price: 59.9,
       badge: "",
       image: "https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "rib", color: "#f2f2ee", label: "Algodão canelado branco" },
+      added: "2026-06-20",
+      art: { kind: "socks", color: "#f2f2ee" },
       sizes: ["36–39", "40–44"],
       description:
         "O detalhe que faz diferença. Pack com três pares de cano alto em algodão macio, com ribana firme que não escorrega. Entram bem com tênis, skate e bota, e sobem o nível quando aparecem entre a barra da calça e o calçado.",
@@ -249,7 +270,8 @@
       price: 69.9,
       badge: "",
       image: "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?auto=format&fit=crop&w=800&q=80",
-      material: { kind: "rib", color: "#3a3a39", label: "Tricô canelado cinza" },
+      added: "2026-07-28",
+      art: { kind: "beanie", color: "#3a3a39" },
       sizes: SIZES_ONE,
       description:
         "Preto, branco e cinza em tricô canelado. O beanie URBAN VIBE tem punho dobrável, malha elástica que abraça sem apertar e etiqueta bordada discreta. Quente o bastante para o frio, leve o bastante para usar o dia inteiro.",
@@ -258,6 +280,348 @@
         "Punho dobrável",
         "Malha elástica que se adapta à cabeça (tamanho único)",
         "Etiqueta bordada URBAN VIBE"
+      ]
+    },
+    {
+      id: 13,
+      name: "Camiseta Estampada City Nights Preta",
+      category: "masculino",
+      type: "Camiseta estampada",
+      price: 139.9,
+      badge: "Novo",
+      added: "2026-11-05",
+      art: { kind: "tee", color: "#0f0f0f", print: "skyline", printInk: "#f4f4f2" },
+      sizes: SIZES_CLOTHING,
+      description:
+        "A cidade acordada de madrugada, estampada no peito e nas costas. Camiseta preta com skyline em silk de alta definição, modelagem solta e algodão encorpado. Peça de rolê para usar com cargo, bermuda ou jaqueta por cima.",
+      details: [
+        "100% algodão penteado, 200 g/m²",
+        "Estampa em silk frente e costas",
+        "Modelagem solta, ombro levemente caído",
+        "Gola em ribana reforçada"
+      ]
+    },
+    {
+      id: 14,
+      name: "Camiseta Oversized Washed Grey",
+      category: "masculino",
+      type: "Camiseta oversized",
+      price: 134.9,
+      badge: "",
+      added: "2026-10-28",
+      art: { kind: "tee", color: "#9a9a98" },
+      sizes: SIZES_CLOTHING,
+      description:
+        "Cinza lavado com aquele ar de peça vivida desde o primeiro dia. Oversized de verdade, com caimento largo, manga ampla e tecido macio por causa da lavagem enzimática. Fácil de combinar com preto, branco e tudo no meio.",
+      details: [
+        "100% algodão com lavagem enzimática",
+        "Modelagem oversized",
+        "Manga ampla e barra reta",
+        "Etiqueta interna estampada"
+      ]
+    },
+    {
+      id: 15,
+      name: "Calça Cargo Utility Black",
+      category: "masculino",
+      type: "Calça cargo",
+      price: 269.9,
+      badge: "",
+      added: "2026-10-20",
+      art: { kind: "pants", color: "#111111", style: "cargo" },
+      sizes: SIZES_CLOTHING,
+      description:
+        "A cargo preta que resolve o look inteiro. Bolsos laterais com aba e botão, cós firme com passadores e perna reta para usar com tênis ou bota. Sarja resistente que aguenta o dia a dia sem perder a forma.",
+      details: [
+        "Sarja de algodão com elastano",
+        "Bolsos cargo laterais com aba e botão",
+        "Cós com passadores e fecho com zíper",
+        "Perna reta, barra com costura dupla"
+      ]
+    },
+    {
+      id: 16,
+      name: "Bermuda Cargo Concrete",
+      category: "masculino",
+      type: "Bermuda",
+      price: 179.9,
+      badge: "Novo",
+      added: "2026-11-08",
+      art: { kind: "pants", color: "#8a8a86", style: "cargoshorts" },
+      sizes: SIZES_CLOTHING,
+      description:
+        "Para os dias quentes sem abrir mão da atitude. Bermuda cargo no cinza concreto, na altura do joelho, com bolsos laterais de verdade e tecido leve que respira. Combina com camiseta oversized e tênis.",
+      details: [
+        "Sarja leve de algodão",
+        "Altura do joelho",
+        "Dois bolsos cargo com aba",
+        "Cós com passadores e zíper"
+      ]
+    },
+    {
+      id: 17,
+      name: "Moletom Crewneck Heavy Off White",
+      category: "masculino",
+      type: "Moletom",
+      price: 259.9,
+      badge: "",
+      added: "2026-10-15",
+      art: { kind: "hoodie", color: "#f2f2ee", hood: false },
+      sizes: SIZES_CLOTHING,
+      description:
+        "Moletom de gola redonda em felpa pesada, no off white que ilumina qualquer composição. Ribana grossa nos punhos, na gola e na barra, caimento boxy e interior macio para os dias de frio na cidade.",
+      details: [
+        "Moletom flanelado, 380 g/m²",
+        "Gola, punhos e barra em ribana grossa",
+        "Modelagem boxy",
+        "Etiqueta bordada discreta"
+      ]
+    },
+    {
+      id: 18,
+      name: "Jaqueta Coach Black Label",
+      category: "masculino",
+      type: "Jaqueta",
+      price: 329.9,
+      badge: "Edição limitada",
+      added: "2026-11-02",
+      art: { kind: "jacket", color: "#1a1a1a", style: "coach" },
+      sizes: SIZES_CLOTHING,
+      description:
+        "A jaqueta coach da URBAN VIBE: gola reta, fechamento por zíper e bolsos frontais embutidos. Tecido leve e resistente ao vento, com assinatura estampada nas costas. Edição limitada, produzida em pequena tiragem.",
+      details: [
+        "Nylon resinado resistente a vento",
+        "Forro leve em poliéster",
+        "Dois bolsos frontais embutidos",
+        "Assinatura estampada nas costas"
+      ]
+    },
+    {
+      id: 19,
+      name: "Camiseta Oversized Off White Feminina",
+      category: "feminino",
+      type: "Camiseta oversized",
+      price: 124.9,
+      badge: "",
+      added: "2026-10-30",
+      art: { kind: "tee", color: "#f2f2ee" },
+      sizes: SIZES_CLOTHING,
+      description:
+        "O básico que nunca sai de moda, na versão oversized. Off white, caimento solto e tecido encorpado que não marca. Usa com calça wide leg, cargo ou por dentro de uma saia: sempre funciona.",
+      details: [
+        "100% algodão penteado, 200 g/m²",
+        "Modelagem oversized",
+        "Gola em ribana reforçada",
+        "Barra reta com costura dupla"
+      ]
+    },
+    {
+      id: 20,
+      name: "Camiseta Estampada Vibe Ring Preta",
+      category: "feminino",
+      type: "Camiseta estampada",
+      price: 139.9,
+      badge: "Novo",
+      added: "2026-11-06",
+      art: { kind: "tee", color: "#0f0f0f", print: "ring", printInk: "#f4f4f2" },
+      sizes: SIZES_CLOTHING,
+      description:
+        "Preta, solta e com o símbolo UV em destaque. O círculo duplo no peito e a assinatura gigante nas costas deixam o visual com cara de coleção de rua. Tecido macio e modelagem confortável.",
+      details: [
+        "100% algodão penteado",
+        "Estampa em silk frente e costas",
+        "Modelagem solta",
+        "Gola em ribana reforçada"
+      ]
+    },
+    {
+      id: 21,
+      name: "Calça Cargo Cinza Street",
+      category: "feminino",
+      type: "Calça cargo",
+      price: 249.9,
+      badge: "",
+      added: "2026-10-12",
+      art: { kind: "pants", color: "#9a9a98", style: "cargo" },
+      sizes: SIZES_CLOTHING,
+      description:
+        "Cargo cinza de cintura marcada e perna reta, com bolsos laterais de aba que são a cara do streetwear. Sarja macia, cós firme e barra que pode ser usada solta ou dobrada.",
+      details: [
+        "Sarja de algodão com elastano",
+        "Bolsos cargo laterais",
+        "Cós com passadores",
+        "Perna reta e barra com costura dupla"
+      ]
+    },
+    {
+      id: 22,
+      name: "Bermuda Ciclista Black",
+      category: "feminino",
+      type: "Bermuda",
+      price: 109.9,
+      badge: "Mais vendido",
+      added: "2026-10-25",
+      art: { kind: "pants", color: "#111111", style: "bike" },
+      sizes: SIZES_CLOTHING,
+      description:
+        "A bermuda ciclista preta que vai de academia a rolê. Cintura alta, tecido com compressão leve e que não fica transparente, perfeita por baixo de camisetas longas e moletons oversized.",
+      details: [
+        "Poliamida com elastano",
+        "Cintura alta com elástico largo",
+        "Tecido opaco com compressão leve",
+        "Costura plana, sem marcas"
+      ]
+    },
+    {
+      id: 23,
+      name: "Moletom Cropped Hoodie Off White",
+      category: "feminino",
+      type: "Moletom",
+      price: 269.9,
+      badge: "",
+      added: "2026-11-01",
+      art: { kind: "hoodie", color: "#f2f2ee", crop: true },
+      sizes: SIZES_CLOTHING,
+      description:
+        "Hoodie cropped em off white, com capuz amplo, cordão ajustável e barra na altura da cintura. Combina com calça de cintura alta e fica ótimo em camadas com camiseta longa por baixo.",
+      details: [
+        "Moletom flanelado macio",
+        "Capuz com cordão ajustável",
+        "Modelagem cropped",
+        "Punhos e barra em ribana"
+      ]
+    },
+    {
+      id: 24,
+      name: "Jaqueta Corta-Vento Grafite",
+      category: "feminino",
+      type: "Jaqueta",
+      price: 339.9,
+      badge: "",
+      added: "2026-10-18",
+      art: { kind: "jacket", color: "#3a3a39", style: "wind" },
+      sizes: SIZES_CLOTHING,
+      description:
+        "Leve, resistente e com faixa refletiva no peito. A corta-vento grafite protege do vento e da garoa sem pesar, tem gola alta, zíper frontal e bolsos laterais com fechamento.",
+      details: [
+        "Nylon leve resistente a vento e respingos",
+        "Faixa refletiva no peito",
+        "Gola alta e zíper frontal",
+        "Bolsos laterais com fechamento"
+      ]
+    },
+    {
+      id: 25,
+      name: "Boné Trucker Black",
+      category: "acessorios",
+      type: "Boné",
+      price: 79.9,
+      badge: "",
+      added: "2026-10-22",
+      art: { kind: "cap", color: "#111111", style: "trucker" },
+      sizes: SIZES_ONE,
+      description:
+        "O trucker clássico em preto: frente firme com patch UV, laterais e parte de trás em tela que deixa a cabeça respirar. Aba curva e ajuste regulável para qualquer tamanho.",
+      details: [
+        "Frente em espuma estruturada",
+        "Tela respirável nas laterais e atrás",
+        "Aba curva",
+        "Regulagem com snap traseiro (tamanho único)"
+      ]
+    },
+    {
+      id: 26,
+      name: "Boné Snapback Aba Reta Branco",
+      category: "acessorios",
+      type: "Boné",
+      price: 84.9,
+      badge: "Novo",
+      added: "2026-11-04",
+      art: { kind: "cap", color: "#f2f2ee", style: "snapback" },
+      sizes: SIZES_ONE,
+      description:
+        "Aba reta, copa estruturada e patch UV bordado no centro. O snapback branco dá contraste em looks pretos e funciona com qualquer camiseta. Regulagem em snap atrás.",
+      details: [
+        "Sarja de algodão",
+        "Copa estruturada de 6 painéis",
+        "Aba reta",
+        "Regulagem com snap (tamanho único)"
+      ]
+    },
+    {
+      id: 27,
+      name: "Bucket Hat Urban Black",
+      category: "acessorios",
+      type: "Chapéu",
+      price: 99.9,
+      badge: "",
+      added: "2026-10-26",
+      art: { kind: "bucket", color: "#141414" },
+      sizes: SIZES_ONE,
+      description:
+        "O bucket hat preto que voltou com tudo. Aba larga para proteger do sol, copa macia que dobra e vai na mochila, olhais laterais para ventilação e patch UV na frente.",
+      details: [
+        "Sarja de algodão macia",
+        "Aba média com costura dupla",
+        "Olhais laterais para ventilação",
+        "Dobrável, tamanho único"
+      ]
+    },
+    {
+      id: 28,
+      name: "Pochete Waist Bag Black",
+      category: "acessorios",
+      type: "Pochete",
+      price: 139.9,
+      badge: "Novo",
+      added: "2026-11-07",
+      art: { kind: "waist", color: "#161616" },
+      sizes: SIZES_ONE,
+      description:
+        "Compacta e prática: cabem celular, chaves e carteira. Zíper com dois cursores, bolso frontal e alça com regulagem para usar na cintura ou atravessada no peito.",
+      details: [
+        "Poliéster 600D resistente à água",
+        "Zíper com dois cursores",
+        "Bolso frontal extra",
+        "Alça regulável com fivela"
+      ]
+    },
+    {
+      id: 29,
+      name: "Ecobag Tote Canvas Off White",
+      category: "acessorios",
+      type: "Bolsa",
+      price: 74.9,
+      badge: "",
+      added: "2026-10-10",
+      art: { kind: "tote", color: "#f2f2ee" },
+      sizes: SIZES_ONE,
+      description:
+        "Tote de lona grossa com a assinatura URBAN VIBE estampada na frente. Alças longas para usar no ombro, boca ampla e costuras reforçadas que seguram o peso do dia a dia.",
+      details: [
+        "Lona 100% algodão",
+        "Alças reforçadas",
+        "Estampa URBAN VIBE em silk",
+        "Costuras duplas"
+      ]
+    },
+    {
+      id: 30,
+      name: "Cinto Tático Preto",
+      category: "acessorios",
+      type: "Cinto",
+      price: 69.9,
+      badge: "",
+      added: "2026-10-05",
+      art: { kind: "belt", color: "#1c1c1c" },
+      sizes: ["P/M", "G/GG"],
+      description:
+        "O cinto que fecha o look utilitário: fita resistente com furos de ajuste e fivela quadrada em metal escovado. Combina com cargo, bermuda e calça wide leg.",
+      details: [
+        "Fita de nylon resistente",
+        "Fivela quadrada em metal escovado",
+        "Furos de ajuste",
+        "Disponível em P/M e G/GG"
       ]
     }
   ];
@@ -331,8 +695,10 @@
     true
   );
 
-  // Zoom do material: textura de tecido gerada em SVG, na cor exata do produto (sem rede, sem arquivo extra)
-  const materialCache = {};
+  // ----- Imagens dos produtos geradas no código (ilustração frente/costas, sem internet) -----
+  // Cada produto tem "art: { kind, color, ... }". A vista frontal e a de costas viram imagens SVG
+  // na cor exata do produto. Para usar fotos reais no lugar, veja o campo "images" em productPhotos().
+  const artCache = {};
 
   function shadeColor(hex, amount) {
     const n = parseInt(hex.slice(1), 16);
@@ -348,137 +714,405 @@
     return 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
   }
 
-  // Camada de ruído colorida (granulação do tecido)
-  function noiseLayer(id, freq, octaves, seed, color, gain, offset) {
-    const n = parseInt(color.slice(1), 16);
-    const r = (n >> 16) / 255;
-    const g = ((n >> 8) & 255) / 255;
-    const b = (n & 255) / 255;
+  // Pequenos blocos de desenho reutilizados pelas peças
+  function artPath(d, extra) {
+    return '<path d="' + d + '" ' + (extra || "") + "/>";
+  }
+
+  function artRibs(x, y, w, h, fill, line) {
+    let out = '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + fill + '"/>';
+    for (let i = x + 9; i < x + w - 3; i += 11) {
+      out += '<path d="M' + i + " " + y + "V" + (y + h) + '" stroke="' + line + '" stroke-width="2.4" opacity="0.55"/>';
+    }
+    return out;
+  }
+
+  function artText(text, x, y, size, fill, spacing, weight) {
     return (
-      '<filter id="' + id + '" x="0" y="0" width="100%" height="100%">' +
-        '<feTurbulence type="fractalNoise" baseFrequency="' + freq + '" numOctaves="' + octaves + '" seed="' + seed + '"/>' +
-        '<feColorMatrix type="matrix" values="0 0 0 0 ' + r + ' 0 0 0 0 ' + g + ' 0 0 0 0 ' + b +
-          ' ' + gain + ' 0 0 0 ' + offset + '"/>' +
-      "</filter>"
+      '<text x="' + x + '" y="' + y + '" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="' + (weight || 800) +
+      '" font-size="' + size + '" letter-spacing="' + (spacing || 0) + '" fill="' + fill + '">' + text + "</text>"
     );
   }
 
-  function materialImage(material) {
-    const key = material.kind + material.color;
-    if (materialCache[key]) return materialCache[key];
-
-    const base = material.color;
-    const dark = colorLuma(base) < 80;
-    const hi = shadeColor(base, dark ? 34 : 18);
-    const lo = shadeColor(base, dark ? -10 : -30);
-    let defs = "";
-    let layers = "";
-
-    if (material.kind === "jersey") {
-      // Malha de ponto jersey: carreiras de pontos em "V"
-      defs +=
-        '<pattern id="p" width="44" height="52" patternUnits="userSpaceOnUse">' +
-          '<path d="M4 8L22 34L40 8" fill="none" stroke="' + lo + '" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" transform="translate(2 3)"/>' +
-          '<path d="M-18 34L0 60L18 34" fill="none" stroke="' + lo + '" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" transform="translate(2 3)"/>' +
-          '<path d="M26 34L44 60L62 34" fill="none" stroke="' + lo + '" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" transform="translate(2 3)"/>' +
-          '<path d="M4 8L22 34L40 8" fill="none" stroke="' + hi + '" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>' +
-          '<path d="M-18 34L0 60L18 34" fill="none" stroke="' + hi + '" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>' +
-          '<path d="M26 34L44 60L62 34" fill="none" stroke="' + hi + '" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>' +
-        "</pattern>";
-      layers += '<rect width="1000" height="1250" fill="url(#p)" opacity="0.8"/>';
-    } else if (material.kind === "rib") {
-      // Tricô canelado: costelas verticais
-      defs +=
-        '<linearGradient id="rg" x1="0" x2="1" y1="0" y2="0">' +
-          '<stop offset="0" stop-color="' + lo + '"/><stop offset="0.5" stop-color="' + hi + '"/><stop offset="1" stop-color="' + lo + '"/></linearGradient>' +
-        '<pattern id="p" width="56" height="14" patternUnits="userSpaceOnUse">' +
-          '<rect width="56" height="14" fill="url(#rg)"/>' +
-          '<path d="M14 0L14 14M42 0L42 14" stroke="' + lo + '" stroke-width="2" opacity="0.6"/>' +
-        "</pattern>";
-      layers += '<rect width="1000" height="1250" fill="url(#p)"/>';
-    } else if (material.kind === "twill") {
-      // Sarja: diagonais finas
-      defs +=
-        '<pattern id="p" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">' +
-          '<rect width="28" height="14" fill="' + hi + '" opacity="0.75"/>' +
-          '<rect y="14" width="28" height="14" fill="' + lo + '" opacity="0.85"/>' +
-          '<rect y="12" width="28" height="3" fill="' + lo + '" opacity="0.7"/>' +
-        "</pattern>";
-      layers += '<rect width="1000" height="1250" fill="url(#p)" opacity="0.85"/>';
-    } else if (material.kind === "ripstop") {
-      // Ripstop: trama fina com reforço em grade
-      defs +=
-        '<pattern id="p" width="14" height="14" patternUnits="userSpaceOnUse">' +
-          '<path d="M0 7H14M7 0V14" stroke="' + hi + '" stroke-width="3" opacity="0.7"/>' +
-          '<path d="M0 0H14M0 0V14" stroke="' + lo + '" stroke-width="2" opacity="0.8"/>' +
-        "</pattern>" +
-        '<pattern id="q" width="112" height="112" patternUnits="userSpaceOnUse">' +
-          '<path d="M0 0H112M0 0V112" stroke="' + hi + '" stroke-width="4" opacity="0.9"/>' +
-          '<path d="M2 3H112M3 2V112" stroke="' + lo + '" stroke-width="3" opacity="0.9"/>' +
-        "</pattern>";
-      layers += '<rect width="1000" height="1250" fill="url(#p)"/><rect width="1000" height="1250" fill="url(#q)"/>';
-    } else if (material.kind === "basket") {
-      // Nylon trançado: fios cruzados
-      defs +=
-        '<pattern id="p" width="24" height="24" patternUnits="userSpaceOnUse">' +
-          '<rect width="24" height="24" fill="' + lo + '"/>' +
-          '<rect x="1" y="1.5" width="10" height="9" rx="3" fill="' + hi + '"/>' +
-          '<rect x="13" y="13.5" width="10" height="9" rx="3" fill="' + hi + '"/>' +
-          '<rect x="13.5" y="1" width="9" height="10" rx="3" fill="' + shadeColor(base, dark ? 18 : 6) + '"/>' +
-          '<rect x="1.5" y="13" width="9" height="10" rx="3" fill="' + shadeColor(base, dark ? 18 : 6) + '"/>' +
-        "</pattern>";
-      layers += '<rect width="1000" height="1250" fill="url(#p)"/>';
-    } else if (material.kind === "satin") {
-      // Nylon acetinado: brilho em faixas e dobras suaves
-      defs +=
-        '<linearGradient id="sg" x1="0" y1="0" x2="1" y2="1">' +
-          '<stop offset="0" stop-color="' + lo + '"/><stop offset="0.28" stop-color="' + hi + '"/>' +
-          '<stop offset="0.45" stop-color="' + base + '"/><stop offset="0.68" stop-color="' + hi + '"/>' +
-          '<stop offset="1" stop-color="' + lo + '"/></linearGradient>' +
-        noiseLayer("fold", "0.004 0.018", 3, 7, hi, 2.4, -0.9);
-      layers += '<rect width="1000" height="1250" fill="url(#sg)"/>' +
-        '<rect width="1000" height="1250" filter="url(#fold)" opacity="0.45"/>';
-    }
-
-    if (material.kind === "fleece") {
-      // Moletom: fibras felpudas e pelinhos
-      defs +=
-        noiseLayer("n1", "0.35", 3, 3, hi, 2.6, -0.95) +
-        noiseLayer("n2", "0.6", 2, 11, lo, 2.6, -0.95) +
-        noiseLayer("n3", "0.12", 2, 5, hi, 2, -0.9);
-      layers +=
-        '<rect width="1000" height="1250" filter="url(#n3)" opacity="0.7"/>' +
-        '<rect width="1000" height="1250" filter="url(#n2)"/>' +
-        '<rect width="1000" height="1250" filter="url(#n1)"/>';
+  // Estampas das camisetas (frente: peito; costas: grande)
+  function artGraphic(style, x, y, scale, ink) {
+    const bars = [34, 62, 46, 88, 54, 72, 40, 96, 58, 66, 44];
+    let g = '<g transform="translate(' + x + " " + y + ") scale(" + scale + ')" fill="' + ink + '" stroke="' + ink + '">';
+    if (style === "ring") {
+      g += '<circle cx="0" cy="0" r="62" fill="none" stroke-width="7"/><circle cx="0" cy="0" r="40" fill="none" stroke-width="3"/>' +
+        artText("UV", 0, 16, 46, ink, 2, 900).replace(/stroke="[^"]*"/, "") +
+        artText("URBAN VIBE", 0, 104, 17, ink, 6, 800);
+    } else if (style === "lines") {
+      for (let i = 0; i < 5; i++) {
+        g += '<path d="M-90 ' + (i * 20 - 40) + " q 22.5 -22 45 0 t 45 0 t 45 0 t 45 0" + '" fill="none" stroke-width="6" stroke-linecap="round"/>';
+      }
+      g += artText("NO RULES", 0, 98, 24, ink, 7, 900);
     } else {
-      // Granulação fina sobre os demais tecidos
-      defs += noiseLayer("n1", "0.8", 2, 4, hi, 1.8, -0.7) + noiseLayer("n2", "0.8", 2, 9, lo, 1.8, -0.7);
-      layers += '<rect width="1000" height="1250" filter="url(#n2)" opacity="0.7"/>' +
-        '<rect width="1000" height="1250" filter="url(#n1)" opacity="0.6"/>';
+      bars.forEach(function (h, i) {
+        g += '<rect x="' + (-95 + i * 17.5) + '" y="' + (50 - h) + '" width="12" height="' + h + '" stroke="none"/>';
+      });
+      g += '<rect x="-98" y="52" width="196" height="3" stroke="none"/>' + artText("CITY NIGHTS", 0, 92, 24, ink, 6, 900) +
+        artText("SÃO PAULO · 2026", 0, 116, 12, ink, 4, 700);
     }
-
-    // Luz suave vinda do alto e vinheta leve (dá a sensação de lente de zoom)
-    defs +=
-      '<radialGradient id="v" cx="0.4" cy="0.35" r="0.85">' +
-        '<stop offset="0.45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.28"/></radialGradient>';
-
-    const svg =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1250" preserveAspectRatio="xMidYMid slice">' +
-      "<defs>" + defs + "</defs>" +
-      '<rect width="1000" height="1250" fill="' + base + '"/>' +
-      layers +
-      '<rect width="1000" height="1250" fill="url(#v)"/></svg>';
-
-    materialCache[key] = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
-    return materialCache[key];
+    return g + "</g>";
   }
 
-  // Lista de fotos do produto: [foto principal, zoom do material]
+  // Cada peça devolve { shape: contorno(s) preenchido(s) na cor do produto, detail: costuras e detalhes, under: desenhado atrás }
+  const ART_KINDS = {
+    tee: function (view, c, o, k) {
+      const hem = o.crop ? 640 : 842;
+      const body = "M335 140L185 190L92 372L212 428L238 396L" + (o.crop ? "232 " : "226 ") + hem + "L" + (o.crop ? "568 " : "574 ") + hem +
+        "L" + (o.crop ? "568 " : "562 ") + "396L588 428L708 372L615 190L465 140" +
+        (view === "front" ? "C458 222 342 222 335 140Z" : "C450 166 350 166 335 140Z");
+      const ink = k.dark ? "#f4f4f2" : "#0a0a0a";
+      let d = artPath("M185 190Q228 300 238 396", k.seam) + artPath("M615 190Q572 300 562 396", k.seam) +
+        artPath("M101 356L221 411", k.seam) + artPath("M699 356L579 411", k.seam) +
+        artPath("M232 " + (hem - 16) + "H568", k.stitch);
+      if (view === "front") {
+        d += artPath("M335 140C342 222 458 222 465 140", 'fill="none" stroke="' + k.lo + '" stroke-width="15" opacity="0.7"') +
+          artPath("M342 146C350 212 450 212 458 146", 'fill="none" stroke="' + k.hi + '" stroke-width="2.5" opacity="0.8"');
+        d += o.print ? artGraphic(o.print, 400, o.crop ? 330 : 360, o.crop ? 1.0 : 1.15, o.printInk || ink)
+          : artText("URBAN VIBE", 468, 300, 13, ink, 3, 800);
+      } else {
+        d += artPath("M335 140C350 166 450 166 465 140", 'fill="none" stroke="' + k.lo + '" stroke-width="15" opacity="0.7"') +
+          '<rect x="382" y="168" width="36" height="22" rx="3" fill="#f4f4f2" opacity="0.92"/>' + artPath("M390 179H410", 'stroke="#777" stroke-width="2"');
+        if (o.print) d += artGraphic(o.print, 400, o.crop ? 330 : 400, o.crop ? 1.25 : 1.6, o.printInk || ink);
+      }
+      d += artPath("M300 330Q330 400 300 470M510 300Q480 380 520 470", 'fill="none" stroke="' + k.lo + '" stroke-width="12" opacity="0.18"');
+      return { shape: artPath(body), detail: d };
+    },
+
+    hoodie: function (view, c, o, k) {
+      const hem = o.crop ? 650 : 800;
+      const hood = o.hood !== false;
+      const neck = view === "front" ? "C455 215 345 215 335 150Z" : "C450 176 350 176 335 150Z";
+      const body = "M335 150L190 195L120 330L92 730L192 745L225 445L230 " + hem + "L570 " + hem + "L575 445L608 745L708 730L680 330L610 195L465 150" + neck;
+      let under = "";
+      if (hood && view === "front") {
+        under = artPath("M300 178C280 50 520 50 500 178C470 198 330 198 300 178Z", 'fill="' + c + '" stroke="' + k.edge + '" stroke-width="2.5"');
+      }
+      let d = artPath("M190 195Q215 330 225 445", k.seam) + artPath("M610 195Q585 330 575 445", k.seam);
+      d += artRibs(230, hem - 26, 340, 26, k.lo, k.edge);
+      d += '<g transform="rotate(7 142 760)">' + artRibs(92, 725, 100, 52, k.lo, k.edge) + "</g>";
+      d += '<g transform="rotate(-7 658 760)">' + artRibs(608, 725, 100, 52, k.lo, k.edge) + "</g>";
+      if (view === "front") {
+        if (hood) {
+          d += artPath("M335 150C345 215 455 215 465 150C440 122 360 122 335 150Z", 'fill="' + k.ink + '" stroke="' + k.edge + '" stroke-width="2.5"') +
+            artPath("M372 205L366 335", 'stroke="' + k.hi + '" stroke-width="6" stroke-linecap="round"') +
+            artPath("M428 205L434 335", 'stroke="' + k.hi + '" stroke-width="6" stroke-linecap="round"') +
+            '<rect x="360" y="332" width="12" height="22" rx="4" fill="' + k.edge + '"/><rect x="428" y="332" width="12" height="22" rx="4" fill="' + k.edge + '"/>';
+        } else {
+          d += artPath("M335 150C345 215 455 215 465 150", 'fill="none" stroke="' + k.lo + '" stroke-width="18" opacity="0.8"');
+        }
+        if (!o.crop) {
+          d += artPath("M296 560H504L542 745H258Z", k.seam) + artPath("M300 565L272 640M500 565L528 640", k.seam);
+        }
+        d += artText("URBAN VIBE", 468, 290, 13, k.dark ? "#f4f4f2" : "#0a0a0a", 3, 800);
+      } else {
+        if (hood) {
+          d += artPath("M300 160C262 150 268 330 400 345C532 330 538 150 500 160C470 122 330 122 300 160Z", 'fill="' + c + '" stroke="' + k.edge + '" stroke-width="2.5"') +
+            artPath("M400 140V340", k.seam) + artPath("M310 200Q330 300 395 335M490 200Q470 300 405 335", 'fill="none" stroke="' + k.lo + '" stroke-width="3" opacity="0.6"');
+        } else {
+          d += artPath("M335 150C350 176 450 176 465 150", 'fill="none" stroke="' + k.lo + '" stroke-width="18" opacity="0.8"');
+        }
+        d += artText("URBAN VIBE", 400, 480, 30, k.dark ? "#f4f4f2" : "#0a0a0a", 8, 900);
+      }
+      return { under: under, shape: artPath(body), detail: d };
+    },
+
+    jacket: function (view, c, o, k) {
+      const style = o.style || "wind";
+      const hem = style === "bomber" ? 700 : style === "coach" ? 790 : 820;
+      const neck = view === "front" ? "L465 150C455 200 345 200 335 150Z" : "L465 150C450 172 350 172 335 150Z";
+      const body = "M335 150L190 195L120 330L92 735L192 750L225 445L230 " + hem + "L570 " + hem + "L575 445L608 750L708 735L680 330L610 195" + neck;
+      let d = artPath("M190 195Q215 330 225 445", k.seam) + artPath("M610 195Q585 330 575 445", k.seam);
+      if (style === "bomber") {
+        d += artRibs(230, hem - 34, 340, 34, k.lo, k.edge);
+        d += '<g transform="rotate(7 142 765)">' + artRibs(92, 730, 100, 60, k.lo, k.edge) + "</g>";
+        d += '<g transform="rotate(-7 658 765)">' + artRibs(608, 730, 100, 60, k.lo, k.edge) + "</g>";
+      } else {
+        d += artPath("M230 " + (hem - 14) + "H570", k.stitch);
+        d += '<g transform="rotate(7 142 765)"><rect x="92" y="735" width="100" height="26" fill="' + k.lo + '" opacity="0.7"/></g>';
+        d += '<g transform="rotate(-7 658 765)"><rect x="608" y="735" width="100" height="26" fill="' + k.lo + '" opacity="0.7"/></g>';
+      }
+      if (view === "front") {
+        // gola
+        const collar = style === "bomber"
+          ? artRibs(322, 118, 156, 40, k.lo, k.edge)
+          : artPath("M335 150L322 112L398 128L400 232Z", 'fill="' + k.hi + '" stroke="' + k.edge + '" stroke-width="2.5"') +
+            artPath("M465 150L478 112L402 128L400 232Z", 'fill="' + k.hi + '" stroke="' + k.edge + '" stroke-width="2.5"');
+        d += collar;
+        d += artPath("M400 232V" + hem, 'stroke="' + k.edge + '" stroke-width="5"') +
+          artPath("M400 232V" + hem, 'stroke="' + k.hi + '" stroke-width="2" stroke-dasharray="3 5"') +
+          '<rect x="393" y="236" width="14" height="30" rx="5" fill="' + k.edge + '"/>';
+        if (style === "wind") {
+          d += '<rect x="226" y="330" width="348" height="16" fill="' + k.hi + '" opacity="0.85"/>' + artPath("M262 560L284 700M538 560L516 700", 'stroke="' + k.edge + '" stroke-width="4" fill="none"');
+        } else if (style === "bomber") {
+          d += artPath("M262 540L284 660M538 540L516 660", 'stroke="' + k.edge + '" stroke-width="4" fill="none"') +
+            '<rect x="112" y="470" width="14" height="110" rx="6" fill="' + k.hi + '" opacity="0.8" transform="rotate(7 119 525)"/>';
+        } else {
+          for (let i = 0; i < 4; i++) {
+            d += '<circle cx="400" cy="' + (280 + i * 120) + '" r="0" fill="none"/>';
+          }
+          d += artPath("M255 590H335V690H255Z M465 590H545V690H465Z", 'fill="none" stroke="' + k.lo + '" stroke-width="3"');
+        }
+        d += artText("URBAN VIBE", 480, 300, 12, k.dark ? "#f4f4f2" : "#0a0a0a", 3, 800);
+      } else {
+        d += (style === "bomber" ? artRibs(322, 120, 156, 36, k.lo, k.edge) : artPath("M335 150C350 172 450 172 465 150L478 118C440 140 360 140 322 118Z", 'fill="' + k.hi + '" stroke="' + k.edge + '" stroke-width="2.5"')) +
+          artPath("M230 300Q400 340 570 300", k.seam) + artPath("M400 335V" + (hem - 10), k.seam);
+        d += artText("URBAN VIBE", 400, 470, style === "coach" ? 38 : 26, k.dark ? "#f4f4f2" : "#0a0a0a", 8, 900);
+      }
+      return { shape: artPath(body), detail: d };
+    },
+
+    pants: function (view, c, o, k) {
+      const style = o.style || "cargo"; // cargo | wide | shorts | cargoshorts | bike
+      const hemY = style === "shorts" || style === "cargoshorts" ? 640 : style === "bike" ? 560 : 920;
+      const wide = style === "wide";
+      const bike = style === "bike";
+      const lo = bike ? 262 : wide ? 150 : style === "shorts" || style === "cargoshorts" ? 208 : 205;
+      const li = bike ? 392 : wide ? 385 : 385;
+      const ro = 800 - lo;
+      const ri = 800 - li;
+      const wl = bike ? 262 : 245;
+      const body = "M" + wl + " 110L" + (800 - wl) + " 110L" + (bike ? 540 : 568) + " 300L" + ro + " " + hemY + "L" + ri + " " + hemY +
+        "L400 400L" + li + " " + hemY + "L" + lo + " " + hemY + "L" + (bike ? 260 : 232) + " 300Z";
+      let d = artRibs(wl, 110, 800 - 2 * wl, 40, k.lo, k.edge).replace(/stroke-width="2.4"/g, 'stroke-width="0"');
+      d += '<rect x="' + wl + '" y="110" width="' + (800 - 2 * wl) + '" height="40" fill="none" stroke="' + k.edge + '" stroke-width="2.5"/>';
+      d += artPath("M" + (lo + 6) + " " + (hemY - 22) + "H" + (li - 4) + "M" + (ri + 4) + " " + (hemY - 22) + "H" + (ro - 6), k.stitch);
+      [275, 400, 525].forEach(function (x) {
+        d += '<rect x="' + (x - 8) + '" y="104" width="16" height="52" rx="4" fill="' + k.hi + '" stroke="' + k.edge + '" stroke-width="2" opacity="0.95"/>';
+      });
+      if (view === "front") {
+        d += artPath("M400 150V300Q400 345 370 350", 'fill="none" stroke="' + k.edge + '" stroke-width="3"') +
+          '<circle cx="400" cy="131" r="9" fill="' + k.edge + '"/>' +
+          artPath("M" + (wl + 4) + " 156Q310 192 322 320M" + (796 - wl) + " 156Q490 192 478 320", k.seam);
+        if (style === "cargo" || style === "cargoshorts") {
+          const px = style === "cargo" ? 226 : 214;
+          const py = style === "cargo" ? 440 : 380;
+          d += '<g fill="' + k.lo + '" fill-opacity="0.22" stroke="' + k.edge + '" stroke-width="3">' +
+            '<rect x="' + px + '" y="' + py + '" width="76" height="130" rx="4"/><rect x="' + (800 - px - 76) + '" y="' + py + '" width="76" height="130" rx="4"/>' +
+            '<rect x="' + px + '" y="' + py + '" width="76" height="34" rx="4" fill="' + k.hi + '" fill-opacity="0.35"/><rect x="' + (800 - px - 76) + '" y="' + py + '" width="76" height="34" rx="4" fill="' + k.hi + '" fill-opacity="0.35"/></g>' +
+            '<circle cx="' + (px + 38) + '" cy="' + (py + 17) + '" r="5" fill="' + k.edge + '"/><circle cx="' + (800 - px - 38) + '" cy="' + (py + 17) + '" r="5" fill="' + k.edge + '"/>';
+        }
+        if (wide) {
+          d += artPath("M300 180L250 880M500 180L550 880", 'fill="none" stroke="' + k.lo + '" stroke-width="4" opacity="0.35"');
+        }
+      } else {
+        d += artPath("M400 150V400", k.seam) +
+          '<g fill="' + k.lo + '" fill-opacity="0.18" stroke="' + k.edge + '" stroke-width="3">' +
+          '<path d="M280 210H372V312H280Z"/><path d="M428 210H520V312H428Z"/></g>' +
+          artPath("M280 236H372M428 236H520", k.seam) +
+          artPath("M" + wl + " 190Q330 235 400 200Q470 235 " + (800 - wl) + " 190", 'fill="none" stroke="' + k.edge + '" stroke-width="2.5"');
+        if (wide) d += artPath("M300 330L262 880M500 330L538 880", 'fill="none" stroke="' + k.lo + '" stroke-width="4" opacity="0.35"');
+      }
+      return { shape: artPath(body), detail: d };
+    },
+
+    cap: function (view, c, o, k) {
+      const flat = o.style === "snapback";
+      const trucker = o.style === "trucker";
+      let under = "";
+      let shape;
+      let d = "";
+      const mesh = '<pattern id="mesh" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="4.5" cy="4.5" r="2.3" fill="' + k.ink + '" opacity="0.55"/></pattern>';
+      shape = artPath("M190 520C190 240 610 240 610 520C560 548 240 548 190 520Z");
+      if (view === "front") {
+        // aba
+        const brim = flat
+          ? "M150 515C300 575 500 575 650 515L692 585C560 640 240 640 108 585Z"
+          : "M165 520C290 575 510 575 635 520C655 600 520 640 400 640C280 640 145 600 165 520Z";
+        under = "";
+        d += artPath(brim, 'fill="' + k.lo + '" stroke="' + k.edge + '" stroke-width="2.5"') +
+          artPath(flat ? "M160 572C300 626 500 626 640 572" : "M185 556C300 606 500 606 615 556", 'fill="none" stroke="' + k.hi + '" stroke-width="3" opacity="0.7"');
+        d += artPath("M400 314V525M400 317C335 345 305 440 290 528M400 317C465 345 495 440 510 528", k.seam) +
+          '<circle cx="400" cy="314" r="11" fill="' + k.lo + '" stroke="' + k.edge + '" stroke-width="2"/>';
+        if (trucker) {
+          d += "<defs>" + mesh + '</defs><g clip-path="url(#g)"><path d="M190 520C190 380 230 300 292 270L300 530C250 536 215 530 190 520Z" fill="url(#mesh)"/>' +
+            '<path d="M610 520C610 380 570 300 508 270L500 530C550 536 585 530 610 520Z" fill="url(#mesh)"/></g>';
+        }
+        d += '<rect x="352" y="378" width="96" height="62" rx="8" fill="' + k.hi + '" stroke="' + k.edge + '" stroke-width="2.5"/>' + artText("UV", 400, 420, 30, k.ink2, 2, 900);
+      } else {
+        d += artPath("M400 314V525M400 317C335 345 305 440 290 528M400 317C465 345 495 440 510 528", k.seam) + '<circle cx="400" cy="314" r="11" fill="' + k.lo + '" stroke="' + k.edge + '" stroke-width="2"/>';
+        if (trucker) {
+          d += "<defs>" + mesh + '</defs><g clip-path="url(#g)"><path d="M190 520C190 300 610 300 610 520C560 548 240 548 190 520Z" fill="url(#mesh)"/></g>';
+        }
+        // tira de ajuste
+        d += '<rect x="262" y="480" width="276" height="34" rx="6" fill="' + k.hi + '" stroke="' + k.edge + '" stroke-width="2.5"/>';
+        for (let i = 0; i < 7; i++) d += '<circle cx="' + (290 + i * 36) + '" cy="497" r="5" fill="' + k.edge + '"/>';
+        d += '<rect x="500" y="474" width="28" height="46" rx="4" fill="#9a9a98" stroke="' + k.edge + '" stroke-width="2"/>';
+      }
+      return { under: under, shape: shape, detail: d, xf: "translate(-140 -190) scale(1.35)" };
+    },
+
+    bucket: function (view, c, o, k) {
+      let d = artPath("M105 560C105 650 695 650 695 560C695 505 105 505 105 560Z", 'fill="' + k.lo + '" stroke="' + k.edge + '" stroke-width="2.5"');
+      d += artPath("M125 585C250 635 550 635 675 585M150 568C280 612 520 612 650 568", k.stitch);
+      d += artPath("M250 340C250 262 550 262 550 340L592 548C500 585 300 585 208 548Z", 'fill="' + c + '" stroke="' + k.edge + '" stroke-width="2.5"') +
+        artPath("M250 345C340 372 460 372 550 345", 'fill="none" stroke="' + k.lo + '" stroke-width="3" opacity="0.6"');
+      d += '<circle cx="252" cy="440" r="8" fill="' + k.ink + '" stroke="' + k.edge + '"/><circle cx="548" cy="440" r="8" fill="' + k.ink + '" stroke="' + k.edge + '"/>';
+      if (view === "front") d += '<rect x="360" y="420" width="80" height="52" rx="8" fill="' + k.hi + '" stroke="' + k.edge + '" stroke-width="2.5"/>' + artText("UV", 400, 458, 28, k.ink2, 2, 900);
+      else d += artPath("M300 470H500M300 500H500", 'stroke="' + k.lo + '" stroke-width="3" opacity="0.6"') + '<rect x="378" y="520" width="44" height="20" rx="3" fill="#f4f4f2" opacity="0.9"/>';
+      return { shape: "", detail: d, noClip: true, xf: "translate(-120 -110) scale(1.3)" };
+    },
+
+    beanie: function (view, c, o, k) {
+      const shape = artPath("M232 560C212 250 588 250 568 560Z");
+      let d = '<g clip-path="url(#g)">' + artPath("M300 300Q290 420 300 520M360 275Q352 420 360 530M440 275Q448 420 440 530M500 300Q510 420 500 520", 'fill="none" stroke="' + k.lo + '" stroke-width="5" opacity="0.5"') + "</g>";
+      d += artRibs(206, 500, 388, 140, k.lo, k.edge) + '<rect x="206" y="500" width="388" height="140" rx="20" fill="none" stroke="' + k.edge + '" stroke-width="2.5"/>';
+      if (view === "front") d += '<rect x="362" y="535" width="76" height="50" rx="6" fill="' + k.hi + '" stroke="' + k.edge + '" stroke-width="2.5"/>' + artText("UV", 400, 570, 26, k.ink2, 2, 900);
+      else d += '<rect x="384" y="520" width="32" height="20" rx="3" fill="#f4f4f2" opacity="0.9"/>';
+      return { shape: shape, detail: d, xf: "translate(-120 -150) scale(1.3)" };
+    },
+
+    crossbody: function (view, c, o, k) {
+      let under = artPath("M250 330C250 70 550 70 550 330", 'fill="none" stroke="' + k.edge + '" stroke-width="34" stroke-linecap="round"') +
+        artPath("M250 330C250 70 550 70 550 330", 'fill="none" stroke="' + c + '" stroke-width="26" stroke-linecap="round"');
+      const shape = '<rect x="195" y="330" width="410" height="400" rx="46"/>';
+      let d = "";
+      if (view === "front") {
+        d += artPath("M195 376H605V470Q400 540 195 470Z", 'fill="' + k.hi + '" fill-opacity="0.22" stroke="' + k.edge + '" stroke-width="3"') +
+          '<rect x="372" y="480" width="56" height="52" rx="8" fill="#9a9a98" stroke="' + k.edge + '" stroke-width="2.5"/>' +
+          artPath("M215 600H585", 'stroke="' + k.edge + '" stroke-width="5"') + '<rect x="388" y="588" width="24" height="26" rx="6" fill="' + k.hi + '" stroke="' + k.edge + '" stroke-width="2"/>';
+        d += artText("URBAN VIBE", 400, 680, 22, k.ink2, 6, 800);
+      } else {
+        d += '<rect x="235" y="400" width="330" height="250" rx="18" fill="none" stroke="' + k.edge + '" stroke-width="3"/>' +
+          artPath("M255 450H545", 'stroke="' + k.edge + '" stroke-width="5"') + '<rect x="388" y="438" width="24" height="26" rx="6" fill="' + k.hi + '" stroke="' + k.edge + '" stroke-width="2"/>';
+      }
+      return { under: under, shape: shape, detail: d, xf: "translate(-60 -120) scale(1.15)" };
+    },
+
+    waist: function (view, c, o, k) {
+      const shape = '<ellipse cx="400" cy="520" rx="260" ry="185"/>';
+      const under =
+        '<rect x="20" y="486" width="150" height="56" rx="10" fill="' + k.lo + '" stroke="' + k.edge + '" stroke-width="2.5"/>' +
+        '<rect x="630" y="486" width="150" height="56" rx="10" fill="' + k.lo + '" stroke="' + k.edge + '" stroke-width="2.5"/>' +
+        '<rect x="48" y="478" width="46" height="72" rx="8" fill="#9a9a98" stroke="' + k.edge + '" stroke-width="2.5"/>';
+      let d = "";
+      if (view === "front") {
+        d += artPath("M170 470C300 372 500 372 630 470", 'fill="none" stroke="' + k.edge + '" stroke-width="4"') +
+          '<rect x="386" y="404" width="28" height="44" rx="8" fill="' + k.hi + '" stroke="' + k.edge + '" stroke-width="2.5"/>' +
+          artPath("M230 560Q400 640 570 560", 'fill="none" stroke="' + k.lo + '" stroke-width="4" opacity="0.7"') +
+          artText("URBAN VIBE", 400, 548, 22, k.ink2, 6, 800);
+      } else {
+        for (let i = 0; i < 6; i++) d += artPath("M" + (230 + i * 68) + " 420V620", 'stroke="' + k.lo + '" stroke-width="6" opacity="0.45"');
+        d += '<rect x="372" y="500" width="56" height="36" rx="5" fill="#f4f4f2" opacity="0.9"/>';
+      }
+      return { under: under, shape: shape, detail: d };
+    },
+
+    tote: function (view, c, o, k) {
+      const under =
+        artPath("M275 335C275 100 345 100 345 335", 'fill="none" stroke="' + k.edge + '" stroke-width="30" stroke-linecap="round"') +
+        artPath("M275 335C275 100 345 100 345 335", 'fill="none" stroke="' + c + '" stroke-width="22" stroke-linecap="round"') +
+        artPath("M455 335C455 100 525 100 525 335", 'fill="none" stroke="' + k.edge + '" stroke-width="30" stroke-linecap="round"') +
+        artPath("M455 335C455 100 525 100 525 335", 'fill="none" stroke="' + c + '" stroke-width="22" stroke-linecap="round"');
+      const shape = artPath("M195 330H605L620 880H180Z");
+      let d = artPath("M200 372H600", k.stitch);
+      if (view === "front") {
+        d += artText("URBAN", 400, 560, 78, k.ink2, 6, 900) + artText("VIBE", 400, 640, 78, k.ink2, 18, 300) + artText("STREETWEAR · SÃO PAULO", 400, 700, 17, k.ink2, 5, 700);
+      } else {
+        d += artText("UV", 400, 640, 58, k.ink2, 2, 900);
+      }
+      d += artPath("M190 855H610", k.stitch);
+      return { under: under, shape: shape, detail: d };
+    },
+
+    belt: function (view, c, o, k) {
+      let d = "";
+      let shape;
+      if (view === "front") {
+        shape = '<rect x="150" y="448" width="620" height="76" rx="8"/>';
+        for (let i = 0; i < 7; i++) d += '<circle cx="' + (330 + i * 56) + '" cy="486" r="7" fill="' + k.ink + '" stroke="' + k.edge + '" stroke-width="2"/>';
+        d += artPath("M160 458H760M160 514H760", k.stitch);
+        d += '<rect x="108" y="410" width="150" height="152" rx="14" fill="none" stroke="#9a9a98" stroke-width="16"/>' +
+          artPath("M190 486H300", 'stroke="#9a9a98" stroke-width="10" stroke-linecap="round"');
+      } else {
+        shape = '<circle cx="400" cy="500" r="250"/>';
+        d += '<circle cx="400" cy="500" r="205" fill="none" stroke="' + k.edge + '" stroke-width="3"/><circle cx="400" cy="500" r="160" fill="none" stroke="' + k.edge + '" stroke-width="3"/>' +
+          '<circle cx="400" cy="500" r="115" fill="' + k.ink + '" opacity="0.18"/><circle cx="400" cy="500" r="115" fill="none" stroke="' + k.edge + '" stroke-width="3"/>' +
+          '<rect x="330" y="236" width="140" height="112" rx="12" fill="none" stroke="#9a9a98" stroke-width="14"/>';
+      }
+      return { shape: shape, detail: d };
+    },
+
+    socks: function (view, c, o, k) {
+      const sock = function (x, y, s, stripes) {
+        let g = '<g transform="translate(' + x + " " + y + ") scale(" + s + ')">' +
+          '<path d="M0 0H100V300C100 360 240 360 252 440C258 500 170 522 90 522C30 522 0 470 0 410Z" fill="' + c + '" stroke="' + k.edge + '" stroke-width="3"/>' +
+          artRibs(0, 0, 100, 70, k.lo, k.edge) + '<rect x="0" y="0" width="100" height="70" fill="none" stroke="' + k.edge + '" stroke-width="3"/>';
+        if (stripes) g += '<rect x="0" y="86" width="100" height="12" fill="' + k.ink + '" opacity="0.85"/><rect x="0" y="108" width="100" height="12" fill="' + k.ink + '" opacity="0.85"/>';
+        g += '<path d="M250 440C256 495 170 520 92 520" fill="none" stroke="' + k.ink + '" stroke-width="22" opacity="0.4"/></g>';
+        return g;
+      };
+      if (view === "front") {
+        return { shape: "", detail: sock(70, 230, 0.95, true) + sock(290, 250, 0.95, true) + sock(510, 230, 0.95, true), noClip: true };
+      }
+      return { shape: "", detail: sock(250, 160, 1.5, false), noClip: true };
+    }
+  };
+
+  function artImage(spec, view) {
+    const key = JSON.stringify(spec) + view;
+    if (artCache[key]) return artCache[key];
+
+    const c = spec.color;
+    const dark = colorLuma(c) < 90;
+    const k = {
+      dark: dark,
+      lo: shadeColor(c, dark ? 14 : -26),
+      hi: shadeColor(c, dark ? 42 : 14),
+      edge: dark ? shadeColor(c, 70) : shadeColor(c, -70),
+      ink: dark ? shadeColor(c, 70) : shadeColor(c, -60),
+      ink2: dark ? "#f4f4f2" : "#0a0a0a"
+    };
+    k.seam = 'fill="none" stroke="' + k.edge + '" stroke-width="3" opacity="0.55" stroke-linecap="round"';
+    k.stitch = 'fill="none" stroke="' + k.edge + '" stroke-width="2.5" stroke-dasharray="7 6" opacity="0.6"';
+    // contorno escuro em peças pretas ficaria invisível: usa linha clara; em peças claras, linha escura
+    k.outline = dark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.32)";
+
+    const parts = ART_KINDS[spec.kind](view, c, spec, k);
+    const clipId = "g";
+    const shapeFill = parts.shape
+      ? '<g fill="' + c + '" stroke="' + k.outline + '" stroke-width="3" stroke-linejoin="round">' + parts.shape + "</g>"
+      : "";
+    const shade =
+      parts.shape && !parts.noClip
+        ? '<g clip-path="url(#' + clipId + ')"><rect width="800" height="1000" fill="url(#sh)"/><rect width="800" height="1000" filter="url(#nz)" opacity="0.22"/></g>'
+        : "";
+    const floor = "";
+
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid slice">' +
+      "<defs>" +
+        '<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ececea"/><stop offset="1" stop-color="#d6d6d3"/></linearGradient>' +
+        '<linearGradient id="sh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0.2"/><stop offset="0.3" stop-color="#fff" stop-opacity="0.12"/><stop offset="0.7" stop-color="#000" stop-opacity="0.02"/><stop offset="1" stop-color="#000" stop-opacity="0.26"/></linearGradient>' +
+        '<filter id="nz" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4"/><feColorMatrix type="matrix" values="0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0.8 0 0 0 -0.2"/></filter>' +
+        '<filter id="bl"><feGaussianBlur stdDeviation="14"/></filter>' +
+        '<filter id="ds" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#000" flood-opacity="0.22"/></filter>' +
+        (parts.shape ? '<clipPath id="' + clipId + '">' + parts.shape + "</clipPath>" : "") +
+      "</defs>" +
+      '<rect width="800" height="1000" fill="url(#bg)"/>' + floor +
+      '<g filter="url(#ds)"><g' + (parts.xf ? ' transform="' + parts.xf + '"' : "") + ">" +
+      (parts.under || "") + shapeFill + shade + (parts.detail || "") + "</g></g></svg>";
+
+    artCache[key] = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+    return artCache[key];
+  }
+
+  // Fotos de um produto: foto principal (image) + vista de costas gerada; ou as duas geradas.
+  // Para usar fotos reais, basta preencher "images: ['url1','url2']" no produto.
   function productPhotos(product) {
-    return [
-      { src: product.image, zoom: false, alt: product.name },
-      { src: materialImage(product.material), zoom: true, alt: "Zoom do material: " + product.material.label }
-    ];
+    if (product.images && product.images.length >= 2) {
+      return product.images.map(function (src, i) {
+        return { src: src, generated: false, alt: product.name + " – foto " + (i + 1) };
+      });
+    }
+    const front = product.image
+      ? { src: product.image, generated: false, alt: product.name }
+      : { src: artImage(product.art, "front"), generated: true, alt: product.name + " – vista frontal" };
+    const back = { src: artImage(product.art, "back"), generated: true, alt: product.name + " – vista de costas" };
+    return [front, back];
   }
 
   function getProduct(id) {
@@ -592,15 +1226,23 @@
     renderCart();
   }
 
-  /* ---------- 4. PRODUTOS E FILTROS ---------- */
+  /* ---------- 4. PRODUTOS: DESTAQUES E PÁGINAS DE CATEGORIA ---------- */
   const productGrid = $("#productGrid");
-  let currentFilter = "todos";
+  const CATEGORY_HASH = /^#categoria-(masculino|feminino|acessorios)$/;
+  const CATEGORY_TITLES = { masculino: "Masculino", feminino: "Feminino", acessorios: "Acessórios" };
 
   function createCard(product, index) {
     const badge = product.badge
       ? '<span class="card__badge">' + escapeHTML(product.badge) + "</span>"
       : "";
     const installment = formatPrice(product.price / 3);
+    const photos = productPhotos(product);
+    const first = photos[0];
+    const second = photos[1];
+    const firstAttrs = first.generated
+      ? ' src="' + first.src + '"'
+      : ' src="' + first.src + '" srcset="' + imageSrcSet(first.src, [400, 800]) + '"' +
+        ' sizes="(max-width: 560px) 50vw, (max-width: 1100px) 33vw, 300px"';
 
     // Produtos com tamanhos abrem os detalhes para o visitante escolher; os demais adicionam direto
     const button = hasSizeChoice(product)
@@ -608,12 +1250,10 @@
       : '<button class="card__btn" data-add="' + product.id + '">Adicionar ao carrinho</button>';
 
     return (
-      '<article class="card" style="animation-delay:' + index * 0.06 + 's">' +
+      '<article class="card" style="animation-delay:' + Math.min(index, 8) * 0.05 + 's">' +
         '<div class="card__media">' +
-          '<img class="card__img" src="' + product.image + '" srcset="' + imageSrcSet(product.image, [400, 800]) + '"' +
-            ' sizes="(max-width: 560px) 50vw, (max-width: 900px) 33vw, (max-width: 1100px) 33vw, 300px"' +
-            ' alt="' + escapeHTML(product.name) + '" loading="lazy" decoding="async">' +
-          '<img class="card__img card__img--alt" src="' + productPhotos(product)[1].src + '"' +
+          '<img class="card__img"' + firstAttrs + ' alt="' + escapeHTML(product.name) + '" loading="lazy" decoding="async">' +
+          '<img class="card__img card__img--alt" src="' + second.src + '"' +
             ' alt="" aria-hidden="true" loading="lazy" decoding="async">' +
           '<span class="card__dots" aria-hidden="true"><i class="is-on"></i><i></i></span>' +
           badge +
@@ -630,66 +1270,240 @@
     );
   }
 
-  function renderProducts() {
-    const list =
-      currentFilter === "todos"
-        ? PRODUCTS
-        : PRODUCTS.filter((p) => p.category === currentFilter);
-
-    productGrid.innerHTML = list.map(createCard).join("");
+  // Destaques: apenas os produtos marcados com featured: true (sem filtros)
+  function renderFeatured() {
+    productGrid.innerHTML = PRODUCTS.filter((p) => p.featured).map(createCard).join("");
   }
 
-  function setFilter(filter) {
-    currentFilter = filter;
-    $$(".filter").forEach((button) => {
-      const active = button.dataset.filter === filter;
-      button.classList.toggle("is-active", active);
-      button.setAttribute("aria-selected", active ? "true" : "false");
+  // Cliques nos cards (vale para os destaques e para as páginas de categoria)
+  function handleGridClick(event) {
+    // Clique no card (foto, nome ou área do card): abre os detalhes
+    const link = event.target.closest("[data-product]");
+    if (link) {
+      // Ctrl/Cmd/Shift + clique mantém o comportamento normal do navegador (nova aba/janela)
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+      event.preventDefault();
+      openProduct(parseInt(link.dataset.product, 10));
+      return;
+    }
+
+    // Botão "Escolher tamanho": abre os detalhes
+    const details = event.target.closest("[data-details]");
+    if (details) {
+      openProduct(parseInt(details.dataset.details, 10));
+      return;
+    }
+
+    // Botão "Adicionar ao carrinho" (produtos de tamanho único)
+    const button = event.target.closest("[data-add]");
+    if (!button) return;
+    const product = getProduct(parseInt(button.dataset.add, 10));
+    addToCart(product.id, product.sizes[0]);
+    button.textContent = "Adicionado ✓";
+    setTimeout(function () {
+      button.textContent = "Adicionar ao carrinho";
+    }, 1200);
+  }
+
+  /* --- Página de categoria --- */
+  const catalogEl = $("#catalogPage");
+  const catalogGrid = $("#catalogGrid");
+  const cpForm = $("#cpFilters");
+  const cpSearch = $("#cpSearch");
+  const cpSize = $("#cpSize");
+  const cpMin = $("#cpMin");
+  const cpMax = $("#cpMax");
+  const cpSort = $("#cpSort");
+  const cpEmpty = $("#cpEmpty");
+  const cpCount = $("#cpCount");
+  const cpClear = $("#cpClear");
+  let catalogCategory = null;
+  let catalogScrollY = 0;
+  let lastFocusedBeforeCatalog = null;
+
+  function catalogOpen() {
+    return !catalogEl.hidden;
+  }
+
+  // Sem acentos e em minúsculas: "calca" encontra "Calça"
+  function normalizeText(text) {
+    return String(text || "")
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  function parsePrice(value) {
+    const n = parseFloat(String(value).replace(",", "."));
+    return isFinite(n) && n >= 0 ? n : null;
+  }
+
+  function hasActiveFilters() {
+    return !!(cpSearch.value.trim() || cpSize.value || cpMin.value.trim() || cpMax.value.trim() || cpSort.value !== "destaque");
+  }
+
+  function categoryProducts(category) {
+    return PRODUCTS.filter((p) => p.category === category);
+  }
+
+  // Preenche as opções de tamanho com os tamanhos que realmente existem na categoria
+  function fillSizeOptions(category) {
+    const order = ["P", "M", "G", "GG", "P/M", "G/GG", "Único"];
+    const found = [];
+    categoryProducts(category).forEach(function (p) {
+      p.sizes.forEach(function (size) {
+        if (found.indexOf(size) === -1) found.push(size);
+      });
     });
-    renderProducts();
+    found.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    cpSize.innerHTML =
+      '<option value="">Todos os tamanhos</option>' +
+      found.map((size) => '<option value="' + escapeHTML(size) + '">' + escapeHTML(size) + "</option>").join("");
+  }
+
+  function resetCatalogFilters() {
+    cpSearch.value = "";
+    cpSize.value = "";
+    cpMin.value = "";
+    cpMax.value = "";
+    cpSort.value = "destaque";
+  }
+
+  function renderCatalog() {
+    if (!catalogCategory) return;
+    const all = categoryProducts(catalogCategory);
+    const q = normalizeText(cpSearch.value);
+    const size = cpSize.value;
+    let min = parsePrice(cpMin.value);
+    let max = parsePrice(cpMax.value);
+    if (min !== null && max !== null && min > max) {
+      const t = min; min = max; max = t; // faixa invertida: ajusta sozinho
+    }
+
+    let list = all.filter(function (p) {
+      if (q && normalizeText(p.name + " " + p.type).indexOf(q) === -1) return false;
+      if (size && p.sizes.indexOf(size) === -1) return false;
+      if (min !== null && p.price < min) return false;
+      if (max !== null && p.price > max) return false;
+      return true;
+    });
+
+    const sort = cpSort.value;
+    list = list.slice();
+    if (sort === "menor") list.sort((a, b) => a.price - b.price || a.id - b.id);
+    else if (sort === "maior") list.sort((a, b) => b.price - a.price || a.id - b.id);
+    else if (sort === "recentes") list.sort((a, b) => (a.added < b.added ? 1 : a.added > b.added ? -1 : b.id - a.id));
+    else list.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || a.id - b.id);
+
+    catalogGrid.innerHTML = list.map(createCard).join("");
+    cpEmpty.hidden = list.length > 0;
+    catalogGrid.hidden = list.length === 0;
+    cpCount.textContent =
+      list.length === all.length
+        ? all.length + (all.length === 1 ? " produto" : " produtos")
+        : list.length + " de " + all.length + " produtos";
+    cpClear.hidden = !hasActiveFilters();
+  }
+
+  function paintCatalogHeader() {
+    $("#cpTitle").textContent = CATEGORY_TITLES[catalogCategory];
+    $("#cpCrumb").textContent = CATEGORY_TITLES[catalogCategory];
+    $$(".catalog-tabs a").forEach(function (a) {
+      const active = a.dataset.cat === catalogCategory;
+      a.classList.toggle("is-active", active);
+      if (active) a.setAttribute("aria-current", "page");
+      else a.removeAttribute("aria-current");
+    });
+    document.title = CATEGORY_TITLES[catalogCategory] + " | URBAN VIBE";
+  }
+
+  const BASE_TITLE = document.title;
+
+  // Abre a página da categoria. opts.push === false: veio do histórico/link direto
+  function openCatalog(category, opts) {
+    const options = opts || {};
+    if (!CATEGORY_TITLES[category]) return;
+    closeMenu();
+    closeAuthUI();
+    closeProductUI();
+    if (cartEl.classList.contains("is-open")) closeCart();
+    closeAccountPageUI();
+
+    const alreadyOpen = catalogOpen();
+    if (alreadyOpen && catalogCategory === category) return; // mesma categoria: mantém filtros e posição
+
+    if (!alreadyOpen) {
+      lastFocusedBeforeCatalog = document.activeElement;
+      catalogScrollY = window.scrollY;
+      document.body.classList.add("view-catalog");
+      catalogEl.hidden = false;
+    }
+    catalogCategory = category;
+    resetCatalogFilters();
+    fillSizeOptions(category);
+    paintCatalogHeader();
+    renderCatalog();
+    window.scrollTo(0, 0);
+    $("#cpTitle").focus({ preventScroll: true });
+
+    if (options.push === true) {
+      try {
+        history.pushState({ urbanCatalog: category }, "", "#categoria-" + category);
+      } catch (error) {
+        /* ambiente sem suporte a histórico */
+      }
+    }
+  }
+
+  // Fecha só a parte visual. quiet: não recoloca a rolagem (usado ao trocar de tela)
+  function closeCatalogUI(quiet) {
+    if (!catalogOpen()) return false;
+    catalogEl.hidden = true;
+    document.body.classList.remove("view-catalog");
+    catalogCategory = null;
+    document.title = BASE_TITLE;
+    if (!quiet) window.scrollTo(0, catalogScrollY);
+    if (lastFocusedBeforeCatalog && typeof lastFocusedBeforeCatalog.focus === "function" && document.contains(lastFocusedBeforeCatalog)) {
+      lastFocusedBeforeCatalog.focus({ preventScroll: true });
+    }
+    return true;
+  }
+
+  function initCatalog() {
+    catalogGrid.addEventListener("click", handleGridClick);
+
+    cpForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      renderCatalog();
+    });
+    // Digitar filtra na hora. "change" só vale para os menus: nos campos de texto ele dispara ao sair do campo
+    // e recriaria os cards no meio do clique, fazendo o primeiro toque em um produto se perder.
+    cpForm.addEventListener("input", function () {
+      renderCatalog();
+    });
+    cpForm.addEventListener("change", function (event) {
+      if (event.target.tagName === "SELECT") renderCatalog();
+    });
+    function clearAll() {
+      resetCatalogFilters();
+      renderCatalog();
+      cpSearch.focus({ preventScroll: true });
+    }
+    cpClear.addEventListener("click", clearAll);
+    $("#cpEmptyClear").addEventListener("click", clearAll);
+
+    // Links de categoria na vitrine e nas abas usam o endereço #categoria-...; o roteador abre a página.
+    // O clique com a tecla Ctrl/Cmd continua abrindo em nova aba.
+    $("#cpHome").addEventListener("click", function () {
+      closeMenu();
+    });
   }
 
   function initProducts() {
-    renderProducts();
-
-    productGrid.addEventListener("click", function (event) {
-      // Clique no card (foto, nome ou área do card): abre os detalhes
-      const link = event.target.closest("[data-product]");
-      if (link) {
-        // Ctrl/Cmd/Shift + clique mantém o comportamento normal do navegador (nova aba/janela)
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
-        event.preventDefault();
-        openProduct(parseInt(link.dataset.product, 10));
-        return;
-      }
-
-      // Botão "Escolher tamanho": abre os detalhes
-      const details = event.target.closest("[data-details]");
-      if (details) {
-        openProduct(parseInt(details.dataset.details, 10));
-        return;
-      }
-
-      // Botão "Adicionar ao carrinho" (produtos de tamanho único)
-      const button = event.target.closest("[data-add]");
-      if (!button) return;
-      const product = getProduct(parseInt(button.dataset.add, 10));
-      addToCart(product.id, product.sizes[0]);
-      button.textContent = "Adicionado ✓";
-      setTimeout(function () {
-        button.textContent = "Adicionar ao carrinho";
-      }, 1200);
-    });
-
-    // Filtros
-    $$(".filter").forEach((button) => {
-      button.addEventListener("click", () => setFilter(button.dataset.filter));
-    });
-
-    // Cards de categoria aplicam o filtro correspondente
-    $$(".category").forEach((link) => {
-      link.addEventListener("click", () => setFilter(link.dataset.filter));
-    });
+    renderFeatured();
+    productGrid.addEventListener("click", handleGridClick);
+    initCatalog();
   }
 
   /* ---------- 5. RENDERIZAÇÃO DO CARRINHO ---------- */
@@ -930,7 +1744,7 @@
     const photos = productPhotos(product);
     const slides = photos
       .map(function (photo, i) {
-        const attrs = photo.zoom
+        const attrs = photo.generated
           ? ' src="' + photo.src + '"'
           : ' src="' + resizeImage(photo.src, 1200) + '" srcset="' + imageSrcSet(photo.src, [800, 1200]) + '"' +
             ' sizes="(max-width: 620px) 100vw, 520px"';
@@ -943,10 +1757,10 @@
       .join("");
     const thumbs = photos
       .map(function (photo, i) {
-        const thumbSrc = photo.zoom ? photo.src : resizeImage(photo.src, 160);
+        const thumbSrc = photo.generated ? photo.src : resizeImage(photo.src, 160);
         return (
           '<button type="button" class="gallery__thumb' + (i === 0 ? " is-active" : "") + '" data-photo="' + i + '"' +
-            ' aria-label="' + (photo.zoom ? "Ver zoom do material" : "Ver foto principal") + '"' +
+            ' aria-label="' + (photo.generated && i === 1 ? "Ver vista de costas" : i === 0 ? "Ver foto principal" : "Ver foto " + (i + 1)) + '"' +
             (i === 0 ? ' aria-current="true"' : "") + ">" +
             '<img src="' + thumbSrc + '" alt="" aria-hidden="true">' +
           "</button>"
@@ -960,7 +1774,6 @@
       '<div class="gallery__track" id="pmTrack" tabindex="0" role="group" aria-label="Fotos do produto">' + slides + "</div>" +
       '<button type="button" class="gallery__nav gallery__nav--prev" id="pmPrev" aria-label="Foto anterior" disabled>' + chevron("M15 5l-7 7 7 7") + "</button>" +
       '<button type="button" class="gallery__nav gallery__nav--next" id="pmNext" aria-label="Próxima foto">' + chevron("M9 5l7 7-7 7") + "</button>" +
-      '<span class="gallery__tag" id="pmTag" aria-live="polite"></span>' +
       '<div class="gallery__thumbs" id="pmThumbs">' + thumbs + "</div>" +
       badge;
     photoIndex = 0;
@@ -1012,9 +1825,6 @@
     });
     $("#pmPrev").disabled = photoIndex === 0;
     $("#pmNext").disabled = photoIndex >= total - 1;
-    const tag = $("#pmTag");
-    tag.textContent = photoIndex === 1 && currentProduct ? "Zoom do material · " + currentProduct.material.label : "";
-    tag.classList.toggle("is-visible", photoIndex === 1);
   }
 
   function goToPhoto(index) {
@@ -1186,7 +1996,7 @@
   // assim, em um link direto, fechar a tela não manda a pessoa de volta para fora do site.
   function replaceRoute(hash, marker) {
     const state = history.state;
-    const ours = state && (state.urbanAuth || state.urbanAccount || state.urbanProduct);
+    const ours = state && (state.urbanAuth || state.urbanAccount || state.urbanProduct || state.urbanCatalog);
     try {
       history.replaceState(ours ? marker : null, "", location.pathname + location.search + hash);
     } catch (error) {
@@ -1982,6 +2792,7 @@
     if (cartEl.classList.contains("is-open")) closeCart();
     closeProductUI();
     closeAuthUI();
+    closeCatalogUI(true);
 
     const alreadyOpen = accountPageOpen();
     if (!alreadyOpen) {
@@ -2057,8 +2868,13 @@
   function syncFromLocation() {
     const authMatch = AUTH_HASH.exec(location.hash);
     const productMatch = PRODUCT_HASH.exec(location.hash);
+    const categoryMatch = CATEGORY_HASH.exec(location.hash);
 
-    if (ACCOUNT_HASH.test(location.hash)) {
+    if (categoryMatch) {
+      closeProductUI();
+      closeAuthUI();
+      openCatalog(categoryMatch[1], { push: false });
+    } else if (ACCOUNT_HASH.test(location.hash)) {
       if (!sessionChecked) return; // espera o Supabase dizer se há sessão salva
       if (!currentUser) {
         try {
@@ -2074,13 +2890,15 @@
       if (!sessionChecked) return; // espera saber se há sessão (evita abrir "login" para quem já está logado)
       openAuth(authMatch[1], { push: false });
     } else if (productMatch && getProduct(parseInt(productMatch[1], 10))) {
-      closeAccountPageUI();
+      if (!catalogOpen()) closeAccountPageUI();
       openProduct(parseInt(productMatch[1], 10), { push: false });
     } else {
       closeProductUI();
       closeAuthUI();
-      // Saiu da Minha conta por um link do menu (ex.: #destaques): leva até a seção pedida
-      if (closeAccountPageUI() && location.hash.length > 1) {
+      // Saiu da Minha conta ou de uma categoria por um link do menu (ex.: #destaques): leva até a seção pedida
+      const leftAccount = closeAccountPageUI();
+      const leftCatalog = closeCatalogUI(location.hash.length > 1);
+      if ((leftAccount || leftCatalog) && location.hash.length > 1) {
         const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
         if (target) target.scrollIntoView();
       }
