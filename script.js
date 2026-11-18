@@ -34,7 +34,7 @@
   // featured (true = aparece em "Produtos em destaque" na página inicial) e as imagens:
   //   - image: foto principal (opcional). Sem "image", a vista frontal é gerada a partir de "art".
   //   - art: { kind, color, ... } gera as vistas frontal e de costas na cor do produto.
-  //   - images: ["url1", "url2"] (opcional) troca as duas imagens por fotos reais suas.
+  //   - Cada produto tem uma única imagem. Para usar uma foto real num produto com "art", acrescente image: "url".
   const PRODUCTS = [
     {
       id: 1,
@@ -696,8 +696,8 @@
   );
 
   // ----- Imagens dos produtos geradas no código (ilustração frente/costas, sem internet) -----
-  // Cada produto tem "art: { kind, color, ... }". A vista frontal e a de costas viram imagens SVG
-  // na cor exata do produto. Para usar fotos reais no lugar, veja o campo "images" em productPhotos().
+  // Produtos sem "image" usam "art: { kind, color, ... }": a vista frontal vira uma imagem SVG na cor exata
+  // do produto. Para usar uma foto real, preencha "image" no produto (veja productPhoto()).
   const artCache = {};
 
   function shadeColor(hex, amount) {
@@ -1100,19 +1100,14 @@
     return artCache[key];
   }
 
-  // Fotos de um produto: foto principal (image) + vista de costas gerada; ou as duas geradas.
-  // Para usar fotos reais, basta preencher "images: ['url1','url2']" no produto.
-  function productPhotos(product) {
-    if (product.images && product.images.length >= 2) {
-      return product.images.map(function (src, i) {
-        return { src: src, generated: false, alt: product.name + " – foto " + (i + 1) };
-      });
+  // Imagem do produto: a foto principal (image) ou, nos produtos sem foto, a vista frontal gerada a partir de "art".
+  // Para usar uma foto real, preencha "image" no produto.
+  function productPhoto(product) {
+    if (product.images && product.images.length) {
+      return { src: product.images[0], generated: false, alt: product.name };
     }
-    const front = product.image
-      ? { src: product.image, generated: false, alt: product.name }
-      : { src: artImage(product.art, "front"), generated: true, alt: product.name + " – vista frontal" };
-    const back = { src: artImage(product.art, "back"), generated: true, alt: product.name + " – vista de costas" };
-    return [front, back];
+    if (product.image) return { src: product.image, generated: false, alt: product.name };
+    return { src: artImage(product.art, "front"), generated: true, alt: product.name };
   }
 
   function getProduct(id) {
@@ -1236,9 +1231,7 @@
       ? '<span class="card__badge">' + escapeHTML(product.badge) + "</span>"
       : "";
     const installment = formatPrice(product.price / 3);
-    const photos = productPhotos(product);
-    const first = photos[0];
-    const second = photos[1];
+    const first = productPhoto(product);
     const firstAttrs = first.generated
       ? ' src="' + first.src + '"'
       : ' src="' + first.src + '" srcset="' + imageSrcSet(first.src, [400, 800]) + '"' +
@@ -1253,9 +1246,6 @@
       '<article class="card" style="animation-delay:' + Math.min(index, 8) * 0.05 + 's">' +
         '<div class="card__media">' +
           '<img class="card__img"' + firstAttrs + ' alt="' + escapeHTML(product.name) + '" loading="lazy" decoding="async">' +
-          '<img class="card__img card__img--alt" src="' + second.src + '"' +
-            ' alt="" aria-hidden="true" loading="lazy" decoding="async">' +
-          '<span class="card__dots" aria-hidden="true"><i class="is-on"></i><i></i></span>' +
           badge +
         "</div>" +
         '<div class="card__body">' +
@@ -1740,44 +1730,18 @@
       ? '<span class="card__badge">' + escapeHTML(product.badge) + "</span>"
       : "";
 
-    // Galeria: uma <img> nova a cada abertura (o tratamento de foto quebrada recomeça do zero)
-    const photos = productPhotos(product);
-    const slides = photos
-      .map(function (photo, i) {
-        const attrs = photo.generated
-          ? ' src="' + photo.src + '"'
-          : ' src="' + resizeImage(photo.src, 1200) + '" srcset="' + imageSrcSet(photo.src, [800, 1200]) + '"' +
-            ' sizes="(max-width: 620px) 100vw, 520px"';
-        return (
-          '<figure class="gallery__slide" role="group" aria-roledescription="foto" aria-label="Foto ' + (i + 1) + " de " + photos.length + '">' +
-            "<img" + attrs + ' alt="' + escapeHTML(photo.alt) + '" decoding="async">' +
-          "</figure>"
-        );
-      })
-      .join("");
-    const thumbs = photos
-      .map(function (photo, i) {
-        const thumbSrc = photo.generated ? photo.src : resizeImage(photo.src, 160);
-        return (
-          '<button type="button" class="gallery__thumb' + (i === 0 ? " is-active" : "") + '" data-photo="' + i + '"' +
-            ' aria-label="' + (photo.generated && i === 1 ? "Ver vista de costas" : i === 0 ? "Ver foto principal" : "Ver foto " + (i + 1)) + '"' +
-            (i === 0 ? ' aria-current="true"' : "") + ">" +
-            '<img src="' + thumbSrc + '" alt="" aria-hidden="true">' +
-          "</button>"
-        );
-      })
-      .join("");
-    const chevron = (d) =>
-      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"></path></svg>';
+    // Uma <img> nova a cada abertura (o tratamento de foto quebrada recomeça do zero)
+    const photo = productPhoto(product);
+    const attrs = photo.generated
+      ? ' src="' + photo.src + '"'
+      : ' src="' + resizeImage(photo.src, 1200) + '" srcset="' + imageSrcSet(photo.src, [800, 1200]) + '"' +
+        ' sizes="(max-width: 620px) 100vw, 520px"';
 
     pmMedia.innerHTML =
-      '<div class="gallery__track" id="pmTrack" tabindex="0" role="group" aria-label="Fotos do produto">' + slides + "</div>" +
-      '<button type="button" class="gallery__nav gallery__nav--prev" id="pmPrev" aria-label="Foto anterior" disabled>' + chevron("M15 5l-7 7 7 7") + "</button>" +
-      '<button type="button" class="gallery__nav gallery__nav--next" id="pmNext" aria-label="Próxima foto">' + chevron("M9 5l7 7-7 7") + "</button>" +
-      '<div class="gallery__thumbs" id="pmThumbs">' + thumbs + "</div>" +
+      '<figure class="gallery__slide">' +
+        "<img" + attrs + ' alt="' + escapeHTML(photo.alt) + '" decoding="async">' +
+      "</figure>" +
       badge;
-    photoIndex = 0;
-    updateGallery();
 
     pmCategory.textContent = CATEGORY_LABELS[product.category] + " · " + product.type;
     pmName.textContent = product.name;
@@ -1807,68 +1771,6 @@
 
     clearTimeout(addFeedbackTimer);
     pmAdd.textContent = "Adicionar ao carrinho";
-  }
-
-  // ----- Galeria de fotos (deslizar no celular, setas, miniaturas e teclado) -----
-  let photoIndex = 0;
-  let galleryRaf = null;
-
-  function updateGallery() {
-    const track = $("#pmTrack");
-    if (!track) return;
-    const total = $$(".gallery__slide", track).length;
-    $$(".gallery__thumb", pmMedia).forEach(function (thumb, i) {
-      const active = i === photoIndex;
-      thumb.classList.toggle("is-active", active);
-      if (active) thumb.setAttribute("aria-current", "true");
-      else thumb.removeAttribute("aria-current");
-    });
-    $("#pmPrev").disabled = photoIndex === 0;
-    $("#pmNext").disabled = photoIndex >= total - 1;
-  }
-
-  function goToPhoto(index) {
-    const track = $("#pmTrack");
-    if (!track) return;
-    const total = $$(".gallery__slide", track).length;
-    photoIndex = Math.max(0, Math.min(total - 1, index));
-    const smooth = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    track.scrollTo({ left: photoIndex * track.clientWidth, behavior: smooth ? "smooth" : "auto" });
-    updateGallery();
-  }
-
-  // Ao deslizar com o dedo, descobre qual foto está visível
-  function onTrackScroll() {
-    if (galleryRaf) return;
-    galleryRaf = requestAnimationFrame(function () {
-      galleryRaf = null;
-      const track = $("#pmTrack");
-      if (!track || !track.clientWidth) return;
-      const index = Math.round(track.scrollLeft / track.clientWidth);
-      if (index !== photoIndex) {
-        photoIndex = index;
-        updateGallery();
-      }
-    });
-  }
-
-  function initGallery() {
-    pmMedia.addEventListener("click", function (event) {
-      const thumb = event.target.closest(".gallery__thumb");
-      if (thumb) return goToPhoto(parseInt(thumb.dataset.photo, 10));
-      if (event.target.closest("#pmPrev")) return goToPhoto(photoIndex - 1);
-      if (event.target.closest("#pmNext")) return goToPhoto(photoIndex + 1);
-    });
-    pmMedia.addEventListener("scroll", onTrackScroll, true);
-
-    // Setas do teclado trocam de foto (exceto quando o foco está nos tamanhos)
-    document.addEventListener("keydown", function (event) {
-      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-      if (!modalEl.classList.contains("is-open")) return;
-      if (event.target.closest && event.target.closest("#pmSizesList")) return;
-      event.preventDefault();
-      goToPhoto(photoIndex + (event.key === "ArrowRight" ? 1 : -1));
-    });
   }
 
   function getSelectedSize() {
@@ -2989,7 +2891,6 @@
     initCart();
     initCartDrawer();
     initProductModal();
-    initGallery();
     initAuth();
     initAccountPage();
     initRouting();
