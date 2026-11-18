@@ -2502,6 +2502,7 @@
     profileState = "idle";
     profileRequest += 1;
     addressForm.reset();
+    cancelCepLookup();
     $$(".field", addressForm).forEach((field) => setFieldError(field, ""));
     setFormStatus($("#apSaveStatus"), "", "");
     setFormStatus($("#apLoadStatus"), "", "");
@@ -2511,6 +2512,90 @@
   function formatCep(digits) {
     const d = (digits || "").replace(/\D/g, "").slice(0, 8);
     return d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d;
+  }
+
+  /* --- Busca automática de endereço pelo CEP (ViaCEP, API pública e gratuita) --- */
+  let cepRequest = 0; // descarta respostas atrasadas (CEP mudou, conta saiu ou formulário foi limpo)
+  let cepLookedUp = ""; // último CEP consultado com sucesso (evita consultar de novo sem necessidade)
+  let cepPending = ""; // CEP em consulta agora
+
+  function setCepHint(kind, message) {
+    const hint = $("#adCep-hint");
+    hint.textContent = message || "";
+    hint.classList.toggle("is-loading", kind === "loading");
+    hint.classList.toggle("is-success", kind === "success");
+  }
+
+  function cancelCepLookup() {
+    cepRequest += 1;
+    cepLookedUp = "";
+    cepPending = "";
+    setCepHint("", "");
+  }
+
+  async function lookupCep(digits) {
+    const cepField = addressInput("cep").closest(".field");
+    const id = ++cepRequest;
+    cepPending = digits;
+    setFieldError(cepField, "");
+    setCepHint("loading", "Buscando endereço…");
+
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), 8000) : null;
+    try {
+      const response = await fetch("https://viacep.com.br/ws/" + digits + "/json/", controller ? { signal: controller.signal } : undefined);
+      if (id !== cepRequest) return;
+      if (response.status === 400) throw { cep: "invalid" };
+      if (!response.ok) throw new Error("http " + response.status);
+      const data = await response.json();
+      if (id !== cepRequest) return;
+      if (!data || data.erro) throw { cep: "notfound" };
+
+      // Rua, bairro, cidade e estado vêm do CEP e continuam editáveis. Número e complemento são só da pessoa.
+      const found = {
+        street: cleanText(data.logradouro || ""),
+        neighborhood: cleanText(data.bairro || ""),
+        city: cleanText(data.localidade || ""),
+        state: String(data.uf || "").toUpperCase()
+      };
+      Object.keys(found).forEach(function (name) {
+        const input = addressInput(name);
+        input.value = name === "state" && UF_LIST.indexOf(found[name]) === -1 ? "" : found[name];
+        setFieldError(input.closest(".field"), "");
+      });
+      cepLookedUp = digits;
+      setCepHint("success", "Endereço encontrado. Confira os dados e informe o número.");
+      // CEP de cidade pequena não traz rua/bairro: a pessoa preenche; senão, vai direto ao número
+      const next = !found.street ? "street" : !found.neighborhood ? "neighborhood" : "number";
+      addressInput(next).focus({ preventScroll: false });
+    } catch (error) {
+      if (id !== cepRequest) return;
+      cepLookedUp = "";
+      setCepHint("", "");
+      if (error && error.cep === "invalid") {
+        setFieldError(cepField, "CEP inválido. Confira os 8 números.");
+      } else if (error && error.cep === "notfound") {
+        setFieldError(cepField, "CEP não encontrado. Confira o número ou preencha o endereço manualmente.");
+      } else {
+        setFieldError(cepField, "Não foi possível buscar o CEP agora. Preencha o endereço manualmente.");
+      }
+    } finally {
+      if (timer) clearTimeout(timer);
+      if (id === cepRequest) cepPending = "";
+    }
+  }
+
+  // Ao digitar o 8º número a busca é automática; com menos de 8 ao sair do campo, avisa
+  function onCepTyped(isBlur) {
+    const input = addressInput("cep");
+    const digits = input.value.replace(/\D/g, "");
+    const cepField = input.closest(".field");
+    if (digits.length === 8) {
+      if (digits !== cepLookedUp && digits !== cepPending) lookupCep(digits);
+    } else {
+      cancelCepLookup();
+      if (isBlur && digits.length > 0) setFieldError(cepField, "CEP inválido. Use 8 números.");
+    }
   }
 
   function addressInput(name) {
@@ -2523,6 +2608,8 @@
       const value = profile && profile[name] ? profile[name] : "";
       addressInput(name).value = name === "cep" ? formatCep(value) : value;
     });
+    cancelCepLookup();
+    cepLookedUp = addressInput("cep").value.replace(/\D/g, "");
   }
 
   function renderAccountPage() {
@@ -2760,6 +2847,10 @@
       const field = event.target.closest(".field");
       if (field && field.classList.contains("is-invalid")) setFieldError(field, "");
       setFormStatus($("#apSaveStatus"), "", "");
+      if (event.target.dataset.field === "cep") onCepTyped(false);
+    });
+    addressInput("cep").addEventListener("blur", function () {
+      onCepTyped(true);
     });
     addressForm.addEventListener("change", function () {
       setFormStatus($("#apSaveStatus"), "", "");
