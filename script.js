@@ -1419,6 +1419,7 @@
     closeProductUI();
     if (cartEl.classList.contains("is-open")) closeCart();
     closeAccountPageUI();
+    closeCheckoutUI(true);
 
     const alreadyOpen = catalogOpen();
     if (alreadyOpen && catalogCategory === category) return; // mesma categoria: mantém filtros e posição
@@ -1661,7 +1662,6 @@
       showToast("Cupom removido");
     });
     $("#couponLogin").addEventListener("click", function () {
-      closePayment(false);
       openAuth("login");
     });
   }
@@ -1740,7 +1740,11 @@
     checkoutBtn.style.pointerEvents = cart.length === 0 ? "none" : "auto";
     clearBtn.style.display = cart.length === 0 ? "none" : "block";
 
-    if (payOpen()) renderPaySummary(); // cupom aplicado/removido: atualiza o resumo do pagamento
+    if (payOpen() && $("#payDone").hidden) {
+      // cupom aplicado/removido ou carrinho alterado: atualiza o resumo; sem itens, volta para a loja
+      if (cart.length === 0) closePayment(false);
+      else renderPaySummary();
+    }
   }
 
   function initCart() {
@@ -1764,7 +1768,7 @@
     // "Finalizar compra" abre a escolha da forma de pagamento (demonstração, sem cobrança real)
     checkoutBtn.addEventListener("click", function () {
       if (cart.length === 0 || couponBusy) return;
-      openPayment();
+      openPayment({ push: true });
     });
 
     initCoupon();
@@ -1784,7 +1788,6 @@
       cartEl.classList.contains("is-open") ||
       modalEl.classList.contains("is-open") ||
       authEl.classList.contains("is-open") ||
-      payEl.classList.contains("is-open") ||
       navEl.classList.contains("is-open");
     if (!busy) document.body.classList.remove("no-scroll");
   }
@@ -1823,21 +1826,23 @@
     }, 2400);
   }
 
-  /* ---------- 6B. PAGAMENTO: ESCOLHA DO MÉTODO (DEMONSTRAÇÃO, SEM COBRANÇA) ---------- */
+  /* ---------- 6B. PÁGINA DE PAGAMENTO: ESCOLHA DO MÉTODO (DEMONSTRAÇÃO, SEM COBRANÇA) ---------- */
   // Nenhum dado de cartão é pedido ou guardado. Quando o pagamento real for integrado (Mercado Pago, Stripe...),
   // a cobrança acontece no ambiente seguro do provedor e o registro do cupom deve ocorrer após a confirmação.
-  const payEl = $("#payModal");
+  const payEl = $("#checkoutPage");
+  const PAY_HASH = /^#pagamento$/;
   const PAY_METHODS = {
     pix: { label: "Pix", info: "O QR Code e o código Pix serão exibidos aqui quando o pagamento for integrado." },
     credito: { label: "Cartão de crédito", info: "Os dados do cartão serão informados no ambiente seguro do provedor de pagamento." },
     debito: { label: "Cartão de débito", info: "Os dados do cartão serão informados no ambiente seguro do provedor de pagamento." },
     boleto: { label: "Boleto bancário", info: "O boleto será gerado com vencimento em 3 dias úteis e liberado após a compensação." }
   };
+  let payScrollY = 0;
   let lastFocusedBeforePay = null;
   let payBusy = false;
 
   function payOpen() {
-    return payEl.classList.contains("is-open");
+    return !payEl.hidden;
   }
 
   function selectedPayMethod() {
@@ -1848,6 +1853,20 @@
   function renderPaySummary() {
     const subtotal = getCartSubtotal();
     const discount = getDiscount(subtotal);
+    $("#payItems").innerHTML = cart
+      .map(function (line) {
+        const product = getProduct(line.id);
+        const size = hasSizeChoice(product) ? " · Tam. " + escapeHTML(line.size) : "";
+        return (
+          '<li class="pay__item">' +
+            '<img src="' + productPhoto(product).src + '" alt="">' +
+            '<span class="pay__item-text"><strong>' + escapeHTML(product.name) + "</strong>" +
+              "<small>" + line.qty + (line.qty === 1 ? " unidade" : " unidades") + size + "</small></span>" +
+            "<b>" + formatPrice(product.price * line.qty) + "</b>" +
+          "</li>"
+        );
+      })
+      .join("");
     $("#paySubtotal").textContent = formatPrice(subtotal);
     $("#payDiscountRow").hidden = !appliedCoupon;
     if (appliedCoupon) {
@@ -1882,45 +1901,83 @@
     $("#payMsg").textContent = "";
   }
 
-  function openPayment() {
-    if (cart.length === 0) return;
+  // Abre a página de pagamento. opts.push === false: veio do histórico, de recarregar a página ou de link direto
+  function openPayment(opts) {
+    const options = opts || {};
+    if (cart.length === 0 && $("#payDone").hidden) {
+      // Sem itens não há o que pagar: volta para a loja
+      if (options.push === false) {
+        try {
+          history.replaceState(null, "", location.pathname + location.search);
+        } catch (error) {
+          /* ignora */
+        }
+      }
+      return;
+    }
     closeMenu();
-    closeProduct();
-    closeAuth();
+    closeProductUI();
+    closeAuthUI();
+    closeCatalogUI(true);
+    closeAccountPageUI();
     if (cartEl.classList.contains("is-open")) {
-      // fecha o carrinho sem devolver o foco a ele: o foco vai para o pagamento
+      // fecha o carrinho sem devolver o foco a ele: o foco vai para a página de pagamento
       cartEl.classList.remove("is-open");
       cartEl.setAttribute("aria-hidden", "true");
       overlayEl.classList.remove("is-visible");
+      unlockScrollIfIdle();
     }
-    lastFocusedBeforePay = $("#cartOpen");
+    if (payOpen()) return; // já está aberta (ex.: voltou do login): mantém o que a pessoa escolheu
+
+    lastFocusedBeforePay = document.activeElement;
+    payScrollY = window.scrollY;
     $("#payStep").hidden = false;
     $("#payDone").hidden = true;
     $$('input[name="payMethod"]', payEl).forEach((r) => (r.checked = false));
     $("#payInstallments").innerHTML = "";
-    renderPaySummary();
-    onPayMethodChange();
     $("#couponInput").value = "";
     if (!appliedCoupon) setCouponMessage("", "");
-    payEl.inert = false;
-    payEl.classList.add("is-open");
-    payEl.setAttribute("aria-hidden", "false");
-    document.body.classList.add("no-scroll");
-    $(".auth__box", payEl).scrollTop = 0;
-    $("#payClose").focus({ preventScroll: true });
+    renderPaySummary();
+    onPayMethodChange();
+    document.body.classList.add("view-checkout");
+    payEl.hidden = false;
+    window.scrollTo(0, 0);
+    $("#payTitle").focus({ preventScroll: true });
+
+    if (options.push !== false) {
+      try {
+        history.pushState({ urbanCheckout: true }, "", "#pagamento");
+      } catch (error) {
+        /* ambiente sem suporte a histórico */
+      }
+    }
   }
 
-  function closePayment(reopenCart) {
-    if (!payOpen()) return;
-    payEl.classList.remove("is-open");
-    payEl.setAttribute("aria-hidden", "true");
-    payEl.inert = true;
-    unlockScrollIfIdle();
-    if (reopenCart) {
-      openCart();
-    } else if (lastFocusedBeforePay && typeof lastFocusedBeforePay.focus === "function") {
+  // Fecha só a parte visual. quiet: não recoloca a rolagem (usado ao trocar de tela)
+  function closeCheckoutUI(quiet) {
+    if (!payOpen()) return false;
+    payEl.hidden = true;
+    document.body.classList.remove("view-checkout");
+    if (!quiet) window.scrollTo(0, payScrollY);
+    if (lastFocusedBeforePay && typeof lastFocusedBeforePay.focus === "function" && document.contains(lastFocusedBeforePay)) {
       lastFocusedBeforePay.focus({ preventScroll: true });
     }
+    return true;
+  }
+
+  // Fecha a página e acerta o histórico (o botão Voltar do navegador faz o mesmo pelo roteador)
+  function closePayment(reopenCart) {
+    if (!closeCheckoutUI(false)) return;
+    if (history.state && history.state.urbanCheckout) {
+      history.back();
+    } else if (PAY_HASH.test(location.hash)) {
+      try {
+        history.replaceState(null, "", location.pathname + location.search);
+      } catch (error) {
+        /* ignora */
+      }
+    }
+    if (reopenCart) openCart();
   }
 
   async function confirmPayment() {
@@ -1983,21 +2040,20 @@
         ? '<div class="pay__row"><span>Cupom ' + escapeHTML(couponCode) + "</span><strong>− " + formatPrice(discount) + "</strong></div>"
         : "") +
       '<div class="pay__row pay__row--total"><span>Total</span><strong>' + formatPrice(total) + "</strong></div>";
+    $("#payStep").hidden = true;
+    $("#payDone").hidden = false; // antes de esvaziar o carrinho: a página não fecha sozinha
     if (couponCode) removeCoupon(true); // cupom consumido
     setCouponMessage("", "");
     clearCart();
-    $("#payStep").hidden = true;
-    $("#payDone").hidden = false;
+    window.scrollTo(0, 0);
     $("#payDoneTitle").focus({ preventScroll: true });
-    $(".auth__box", payEl).scrollTop = 0;
   }
 
   function initPayment() {
     $$('input[name="payMethod"]', payEl).forEach((r) => r.addEventListener("change", onPayMethodChange));
     $("#payConfirm").addEventListener("click", confirmPayment);
-    $("#payClose").addEventListener("click", () => closePayment(false));
-    $("#payBackdrop").addEventListener("click", () => closePayment(false));
     $("#payBack").addEventListener("click", () => closePayment(true));
+    $("#payHome").addEventListener("click", closeMenu);
     $("#payDoneClose").addEventListener("click", function () {
       closePayment(false);
       const target = $("#destaques");
@@ -2031,10 +2087,6 @@
 
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape") {
-        if (payOpen()) {
-          closePayment(false);
-          return;
-        }
         // Se os detalhes do produto estão abertos, o Esc fecha só eles
         if (authEl.classList.contains("is-open")) {
           closeAuth();
@@ -2050,8 +2102,7 @@
       }
 
       if (event.key === "Tab") {
-        if (payOpen()) trapFocus(event, payEl);
-        else if (cartEl.classList.contains("is-open")) trapFocus(event, cartEl);
+        if (cartEl.classList.contains("is-open")) trapFocus(event, cartEl);
         else if (authEl.classList.contains("is-open")) trapFocus(event, authEl);
         else if (modalEl.classList.contains("is-open")) trapFocus(event, modalEl);
       }
@@ -2253,7 +2304,7 @@
   // assim, em um link direto, fechar a tela não manda a pessoa de volta para fora do site.
   function replaceRoute(hash, marker) {
     const state = history.state;
-    const ours = state && (state.urbanAuth || state.urbanAccount || state.urbanProduct || state.urbanCatalog);
+    const ours = state && (state.urbanAuth || state.urbanAccount || state.urbanProduct || state.urbanCatalog || state.urbanCheckout);
     try {
       history.replaceState(ours ? marker : null, "", location.pathname + location.search + hash);
     } catch (error) {
@@ -3138,6 +3189,7 @@
     closeProductUI();
     closeAuthUI();
     closeCatalogUI(true);
+    closeCheckoutUI(true);
 
     const alreadyOpen = accountPageOpen();
     if (!alreadyOpen) {
@@ -3219,7 +3271,11 @@
     const productMatch = PRODUCT_HASH.exec(location.hash);
     const categoryMatch = CATEGORY_HASH.exec(location.hash);
 
-    if (categoryMatch) {
+    if (PAY_HASH.test(location.hash)) {
+      closeProductUI();
+      closeAuthUI();
+      openPayment({ push: false });
+    } else if (categoryMatch) {
       closeProductUI();
       closeAuthUI();
       openCatalog(categoryMatch[1], { push: false });
@@ -3247,7 +3303,8 @@
       // Saiu da Minha conta ou de uma categoria por um link do menu (ex.: #destaques): leva até a seção pedida
       const leftAccount = closeAccountPageUI();
       const leftCatalog = closeCatalogUI(location.hash.length > 1);
-      if ((leftAccount || leftCatalog) && location.hash.length > 1) {
+      const leftCheckout = closeCheckoutUI(location.hash.length > 1);
+      if ((leftAccount || leftCatalog || leftCheckout) && location.hash.length > 1) {
         const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
         if (target) target.scrollIntoView();
       }
