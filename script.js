@@ -1661,7 +1661,7 @@
       showToast("Cupom removido");
     });
     $("#couponLogin").addEventListener("click", function () {
-      closeCart();
+      closePayment(false);
       openAuth("login");
     });
   }
@@ -1724,22 +1724,8 @@
         .join("");
     }
 
-    // Totais, cupom e frete
+    // Subtotal e frete (o cupom é aplicado na tela de pagamento)
     cartSubtotalEl.textContent = formatPrice(subtotal);
-    const discount = getDiscount(subtotal);
-    const hasCoupon = cart.length > 0 && appliedCoupon !== null;
-    $("#cartDiscountRow").hidden = !hasCoupon;
-    $("#cartTotalRow").hidden = !hasCoupon;
-    if (hasCoupon) {
-      $("#cartDiscountLabel").textContent = "Desconto (−" + appliedCoupon.percent + "%)";
-      $("#cartDiscount").textContent = "− " + formatPrice(discount);
-      $("#cartTotal").textContent = formatPrice(subtotal - discount);
-    }
-    $("#coupon").hidden = cart.length === 0;
-    $("#couponForm").hidden = appliedCoupon !== null;
-    $("#couponApplied").hidden = appliedCoupon === null;
-    if (appliedCoupon) $("#couponAppliedCode").textContent = appliedCoupon.code;
-
     if (cart.length === 0) {
       cartShippingEl.textContent = "";
     } else if (subtotal >= FREE_SHIPPING_MIN) {
@@ -1753,6 +1739,8 @@
     checkoutBtn.style.opacity = cart.length === 0 ? "0.4" : "1";
     checkoutBtn.style.pointerEvents = cart.length === 0 ? "none" : "auto";
     clearBtn.style.display = cart.length === 0 ? "none" : "block";
+
+    if (payOpen()) renderPaySummary(); // cupom aplicado/removido: atualiza o resumo do pagamento
   }
 
   function initCart() {
@@ -1773,62 +1761,10 @@
       showToast("Carrinho esvaziado");
     });
 
-    // Finalização (simulada nesta versão, sem pagamento). Com cupom, o uso é registrado no Supabase.
-    checkoutBtn.addEventListener("click", async function () {
+    // "Finalizar compra" abre a escolha da forma de pagamento (demonstração, sem cobrança real)
+    checkoutBtn.addEventListener("click", function () {
       if (cart.length === 0 || couponBusy) return;
-
-      if (appliedCoupon) {
-        if (!sb || !currentUser) {
-          removeCoupon(true);
-          setCouponMessage("error", "Entre na sua conta para usar o cupom.", true);
-          return;
-        }
-        const code = appliedCoupon.code;
-        const uid = currentUser.id;
-        couponBusy = true;
-        checkoutBtn.disabled = true;
-        const label = checkoutBtn.textContent;
-        checkoutBtn.textContent = "Confirmando…";
-        let failure = null;
-        try {
-          // O banco recusa a segunda gravação (UNIQUE user_id + code): é ele quem garante "uma vez por cliente"
-          const result = await sb.from("coupon_redemptions").insert({ code: code });
-          if (result.error) failure = result.error;
-        } catch (error) {
-          failure = error;
-        }
-        couponBusy = false;
-        checkoutBtn.disabled = cart.length === 0;
-        checkoutBtn.textContent = label;
-        if (!currentUser || currentUser.id !== uid) return;
-        if (failure) {
-          if (String(failure.code) === "23505") {
-            removeCoupon(true);
-            setCouponMessage("error", "Você já utilizou este cupom. Ele vale uma única vez por cliente.");
-            showToast("Cupom já utilizado nesta conta");
-          } else {
-            setCouponMessage("error", couponErrorMessage(failure));
-          }
-          return;
-        }
-        const paid = formatPrice(getCartTotal());
-        const off = formatPrice(getDiscount(getCartSubtotal()));
-        removeCoupon(true); // cupom consumido
-        setCouponMessage("", "");
-        alert(
-          "Obrigado pela preferência!\n\n" +
-          "Cupom " + code + " aplicado: desconto de " + off + "\n" +
-          "Total do pedido: " + paid + "\n\n" +
-          "Esta é a primeira versão da loja: a finalização de compra será integrada em breve."
-        );
-        return;
-      }
-
-      alert(
-        "Obrigado pela preferência!\n\n" +
-        "Total do pedido: " + formatPrice(getCartTotal()) + "\n\n" +
-        "Esta é a primeira versão da loja: a finalização de compra será integrada em breve."
-      );
+      openPayment();
     });
 
     initCoupon();
@@ -1848,6 +1784,7 @@
       cartEl.classList.contains("is-open") ||
       modalEl.classList.contains("is-open") ||
       authEl.classList.contains("is-open") ||
+      payEl.classList.contains("is-open") ||
       navEl.classList.contains("is-open");
     if (!busy) document.body.classList.remove("no-scroll");
   }
@@ -1886,6 +1823,188 @@
     }, 2400);
   }
 
+  /* ---------- 6B. PAGAMENTO: ESCOLHA DO MÉTODO (DEMONSTRAÇÃO, SEM COBRANÇA) ---------- */
+  // Nenhum dado de cartão é pedido ou guardado. Quando o pagamento real for integrado (Mercado Pago, Stripe...),
+  // a cobrança acontece no ambiente seguro do provedor e o registro do cupom deve ocorrer após a confirmação.
+  const payEl = $("#payModal");
+  const PAY_METHODS = {
+    pix: { label: "Pix", info: "O QR Code e o código Pix serão exibidos aqui quando o pagamento for integrado." },
+    credito: { label: "Cartão de crédito", info: "Os dados do cartão serão informados no ambiente seguro do provedor de pagamento." },
+    debito: { label: "Cartão de débito", info: "Os dados do cartão serão informados no ambiente seguro do provedor de pagamento." },
+    boleto: { label: "Boleto bancário", info: "O boleto será gerado com vencimento em 3 dias úteis e liberado após a compensação." }
+  };
+  let lastFocusedBeforePay = null;
+  let payBusy = false;
+
+  function payOpen() {
+    return payEl.classList.contains("is-open");
+  }
+
+  function selectedPayMethod() {
+    const checked = $('input[name="payMethod"]:checked', payEl);
+    return checked ? checked.value : "";
+  }
+
+  function renderPaySummary() {
+    const subtotal = getCartSubtotal();
+    const discount = getDiscount(subtotal);
+    $("#paySubtotal").textContent = formatPrice(subtotal);
+    $("#payDiscountRow").hidden = !appliedCoupon;
+    if (appliedCoupon) {
+      $("#payDiscountLabel").textContent = "Cupom " + appliedCoupon.code + " (−" + appliedCoupon.percent + "%)";
+      $("#payDiscount").textContent = "− " + formatPrice(discount);
+    }
+    $("#payTotal").textContent = formatPrice(subtotal - discount);
+    $("#couponForm").hidden = appliedCoupon !== null;
+    $("#couponApplied").hidden = appliedCoupon === null;
+    if (appliedCoupon) $("#couponAppliedCode").textContent = appliedCoupon.code;
+    fillInstallments(subtotal - discount);
+  }
+
+  function fillInstallments(total) {
+    const select = $("#payInstallments");
+    const previous = select.value || "1";
+    let html = "";
+    for (let n = 1; n <= 3; n++) {
+      html += '<option value="' + n + '">' + n + "x de " + formatPrice(total / n) + (n === 1 ? " à vista" : " sem juros") + "</option>";
+    }
+    select.innerHTML = html;
+    select.value = previous;
+  }
+
+  function onPayMethodChange() {
+    const method = selectedPayMethod();
+    const detail = $("#payDetail");
+    detail.hidden = !method;
+    $("#payInstallmentsWrap").hidden = method !== "credito";
+    $("#payInfo").textContent = method ? PAY_METHODS[method].info : "";
+    $("#payConfirm").disabled = !method || payBusy;
+    $("#payMsg").textContent = "";
+  }
+
+  function openPayment() {
+    if (cart.length === 0) return;
+    closeMenu();
+    closeProduct();
+    closeAuth();
+    if (cartEl.classList.contains("is-open")) {
+      // fecha o carrinho sem devolver o foco a ele: o foco vai para o pagamento
+      cartEl.classList.remove("is-open");
+      cartEl.setAttribute("aria-hidden", "true");
+      overlayEl.classList.remove("is-visible");
+    }
+    lastFocusedBeforePay = $("#cartOpen");
+    $("#payStep").hidden = false;
+    $("#payDone").hidden = true;
+    $$('input[name="payMethod"]', payEl).forEach((r) => (r.checked = false));
+    $("#payInstallments").innerHTML = "";
+    renderPaySummary();
+    onPayMethodChange();
+    $("#couponInput").value = "";
+    if (!appliedCoupon) setCouponMessage("", "");
+    payEl.inert = false;
+    payEl.classList.add("is-open");
+    payEl.setAttribute("aria-hidden", "false");
+    document.body.classList.add("no-scroll");
+    $(".auth__box", payEl).scrollTop = 0;
+    $("#payClose").focus({ preventScroll: true });
+  }
+
+  function closePayment(reopenCart) {
+    if (!payOpen()) return;
+    payEl.classList.remove("is-open");
+    payEl.setAttribute("aria-hidden", "true");
+    payEl.inert = true;
+    unlockScrollIfIdle();
+    if (reopenCart) {
+      openCart();
+    } else if (lastFocusedBeforePay && typeof lastFocusedBeforePay.focus === "function") {
+      lastFocusedBeforePay.focus({ preventScroll: true });
+    }
+  }
+
+  async function confirmPayment() {
+    const method = selectedPayMethod();
+    if (!method || payBusy || cart.length === 0) return;
+    const msg = $("#payMsg");
+    const confirmBtn = $("#payConfirm");
+    msg.textContent = "";
+
+    let couponCode = null;
+    if (appliedCoupon) {
+      if (!sb || !currentUser) {
+        removeCoupon(true);
+        setCouponMessage("", "");
+        msg.textContent = "Entre na sua conta para usar o cupom. O desconto foi removido.";
+        return;
+      }
+      couponCode = appliedCoupon.code;
+      const uid = currentUser.id;
+      payBusy = true;
+      couponBusy = true;
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Confirmando…";
+      let failure = null;
+      try {
+        // O banco recusa a segunda gravação (UNIQUE user_id + code): é ele quem garante "uma vez por cliente"
+        const result = await sb.from("coupon_redemptions").insert({ code: couponCode });
+        if (result.error) failure = result.error;
+      } catch (error) {
+        failure = error;
+      }
+      payBusy = false;
+      couponBusy = false;
+      confirmBtn.textContent = "Confirmar pedido";
+      confirmBtn.disabled = !selectedPayMethod();
+      if (!currentUser || currentUser.id !== uid) return;
+      if (failure) {
+        if (String(failure.code) === "23505") {
+          removeCoupon(true);
+          setCouponMessage("", "");
+          msg.textContent = "Você já utilizou este cupom (uso único por cliente). O desconto foi removido: confira o novo total e confirme de novo.";
+        } else {
+          msg.textContent = couponErrorMessage(failure);
+        }
+        return;
+      }
+    }
+
+    // Pedido (simulado) confirmado
+    const subtotal = getCartSubtotal();
+    const discount = getDiscount(subtotal);
+    const total = subtotal - discount;
+    const parcelas = method === "credito" ? parseInt($("#payInstallments").value, 10) || 1 : 1;
+    let how = PAY_METHODS[method].label;
+    if (method === "credito") how += " em " + parcelas + "x de " + formatPrice(total / parcelas);
+    $("#payDoneText").textContent = "Obrigado pela preferência! Forma de pagamento: " + how + ".";
+    $("#payDoneSummary").innerHTML =
+      '<div class="pay__row"><span>Subtotal</span><strong>' + formatPrice(subtotal) + "</strong></div>" +
+      (couponCode
+        ? '<div class="pay__row"><span>Cupom ' + escapeHTML(couponCode) + "</span><strong>− " + formatPrice(discount) + "</strong></div>"
+        : "") +
+      '<div class="pay__row pay__row--total"><span>Total</span><strong>' + formatPrice(total) + "</strong></div>";
+    if (couponCode) removeCoupon(true); // cupom consumido
+    setCouponMessage("", "");
+    clearCart();
+    $("#payStep").hidden = true;
+    $("#payDone").hidden = false;
+    $("#payDoneTitle").focus({ preventScroll: true });
+    $(".auth__box", payEl).scrollTop = 0;
+  }
+
+  function initPayment() {
+    $$('input[name="payMethod"]', payEl).forEach((r) => r.addEventListener("change", onPayMethodChange));
+    $("#payConfirm").addEventListener("click", confirmPayment);
+    $("#payClose").addEventListener("click", () => closePayment(false));
+    $("#payBackdrop").addEventListener("click", () => closePayment(false));
+    $("#payBack").addEventListener("click", () => closePayment(true));
+    $("#payDoneClose").addEventListener("click", function () {
+      closePayment(false);
+      const target = $("#destaques");
+      if (target) target.scrollIntoView({ behavior: "smooth" });
+    });
+  }
+
   // Mantém o foco do teclado dentro de um painel aberto (carrinho ou detalhes)
   function trapFocus(event, container) {
     const focusables = $$("button, a[href], input", container).filter(
@@ -1912,6 +2031,10 @@
 
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape") {
+        if (payOpen()) {
+          closePayment(false);
+          return;
+        }
         // Se os detalhes do produto estão abertos, o Esc fecha só eles
         if (authEl.classList.contains("is-open")) {
           closeAuth();
@@ -1927,7 +2050,8 @@
       }
 
       if (event.key === "Tab") {
-        if (cartEl.classList.contains("is-open")) trapFocus(event, cartEl);
+        if (payOpen()) trapFocus(event, payEl);
+        else if (cartEl.classList.contains("is-open")) trapFocus(event, cartEl);
         else if (authEl.classList.contains("is-open")) trapFocus(event, authEl);
         else if (modalEl.classList.contains("is-open")) trapFocus(event, modalEl);
       }
@@ -3212,6 +3336,7 @@
     initHeader();
     initProducts();
     initCart();
+    initPayment();
     initCartDrawer();
     initProductModal();
     initAuth();
