@@ -1496,6 +1496,176 @@
     initCatalog();
   }
 
+  /* ---------- 4B. CUPOM DE DESCONTO (UMA VEZ POR CLIENTE, REGISTRADO NO SUPABASE) ---------- */
+  // O cupom só vale para quem está logado. O uso é gravado na tabela public.coupon_redemptions
+  // (supabase-coupons.sql), com UNIQUE (user_id, code): o banco impede o segundo uso da mesma conta.
+  const COUPONS = { PRIMEIRACOMPRA: { percent: 20 } };
+  const COUPON_KEY = "urbanvibe_coupon_v1";
+  let appliedCoupon = null; // { code, percent } validado para a conta atual
+  let pendingCoupon = null; // { code, uid|null }: aguardando login/validação
+  let couponBusy = false;
+  let couponRequest = 0;
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(COUPON_KEY));
+    if (saved && COUPONS[saved.code] && saved.uid) pendingCoupon = { code: saved.code, uid: saved.uid };
+  } catch (error) {
+    /* sem armazenamento: o cupom só vale nesta visita */
+  }
+
+  function saveCouponState() {
+    try {
+      if (appliedCoupon && currentUser) localStorage.setItem(COUPON_KEY, JSON.stringify({ code: appliedCoupon.code, uid: currentUser.id }));
+      else localStorage.removeItem(COUPON_KEY);
+    } catch (error) {
+      /* ignora */
+    }
+  }
+
+  function getDiscount(subtotal) {
+    return appliedCoupon ? Math.round(subtotal * appliedCoupon.percent) / 100 : 0;
+  }
+
+  function getCartTotal() {
+    const subtotal = getCartSubtotal();
+    return subtotal - getDiscount(subtotal);
+  }
+
+  function setCouponMessage(kind, text, withLogin) {
+    const msg = $("#couponMsg");
+    msg.textContent = text || "";
+    msg.classList.toggle("is-error", kind === "error");
+    msg.classList.toggle("is-success", kind === "success");
+    $("#couponLogin").hidden = !withLogin;
+  }
+
+  function removeCoupon(silent) {
+    couponRequest += 1;
+    appliedCoupon = null;
+    pendingCoupon = null;
+    saveCouponState();
+    if (!silent) setCouponMessage("", "");
+    renderCart();
+  }
+
+  function couponErrorMessage(error) {
+    const code = ((error && error.code) || "").toString();
+    const text = ((error && error.message) || "").toLowerCase();
+    if (code === "PGRST205" || code === "42P01" || text.indexOf("could not find the table") !== -1) {
+      console.warn("[URBAN VIBE] Tabela public.coupon_redemptions não encontrada: execute o arquivo supabase-coupons.sql no SQL Editor do Supabase.");
+      return "Os cupons ainda não estão disponíveis. Tente novamente mais tarde.";
+    }
+    return "Não foi possível validar o cupom agora. Tente novamente em instantes.";
+  }
+
+  // Valida e aplica. source: "typing" (digitando: só reage ao código certo) | "submit" | "auto" (retomada após login/recarga)
+  async function applyCoupon(raw, source) {
+    const code = String(raw || "").replace(/\s+/g, "").toUpperCase();
+    const info = COUPONS[code];
+
+    if (!code) {
+      if (source === "submit") setCouponMessage("error", "Digite o código do cupom.");
+      return;
+    }
+    if (!info) {
+      if (source === "submit") setCouponMessage("error", "Cupom inválido. Confira o código digitado.");
+      else if (source === "typing") setCouponMessage("", "");
+      return;
+    }
+    if (appliedCoupon && appliedCoupon.code === code) {
+      if (source === "submit") setCouponMessage("success", "Este cupom já está aplicado.");
+      return;
+    }
+    if (!sb) {
+      setCouponMessage("error", "Os cupons estão indisponíveis no momento.");
+      return;
+    }
+    if (!sessionChecked) {
+      pendingCoupon = { code: code, uid: null };
+      setCouponMessage("", "Verificando sua conta…");
+      return;
+    }
+    if (!currentUser) {
+      pendingCoupon = { code: code, uid: null };
+      setCouponMessage("error", "Entre na sua conta para usar o cupom. Ele vale uma vez por cliente.", true);
+      return;
+    }
+
+    const uid = currentUser.id;
+    const request = ++couponRequest;
+    couponBusy = true;
+    $("#couponApply").disabled = true;
+    setCouponMessage("", "Validando cupom…");
+    try {
+      const result = await sb.from("coupon_redemptions").select("id").eq("user_id", uid).eq("code", code).limit(1);
+      if (request !== couponRequest || !currentUser || currentUser.id !== uid) return;
+      if (result.error) throw result.error;
+      if (result.data && result.data.length > 0) {
+        pendingCoupon = null;
+        saveCouponState();
+        setCouponMessage("error", "Você já utilizou este cupom. Ele vale uma única vez por cliente.");
+        return;
+      }
+      appliedCoupon = { code: code, percent: info.percent };
+      pendingCoupon = null;
+      saveCouponState();
+      $("#couponInput").value = "";
+      setCouponMessage("success", info.percent + "% de desconto aplicado nos produtos!");
+      renderCart();
+    } catch (error) {
+      if (request !== couponRequest) return;
+      setCouponMessage("error", couponErrorMessage(error));
+    } finally {
+      if (request === couponRequest) {
+        couponBusy = false;
+        $("#couponApply").disabled = false;
+      }
+    }
+  }
+
+  // Chamada quando a conta logada muda (login, logout, troca de usuário)
+  function onCouponUserChange(previousId, user) {
+    if (appliedCoupon && (!user || user.id !== previousId)) {
+      appliedCoupon = null;
+      saveCouponState();
+      renderCart();
+    }
+    if (!user) {
+      if (pendingCoupon && pendingCoupon.uid) pendingCoupon = null; // cupom guardado era de outra conta
+      return;
+    }
+    if (pendingCoupon && (!pendingCoupon.uid || pendingCoupon.uid === user.id)) {
+      const code = pendingCoupon.code;
+      setTimeout(function () {
+        applyCoupon(code, "auto");
+      }, 0);
+    } else if (pendingCoupon) {
+      pendingCoupon = null;
+    }
+  }
+
+  function initCoupon() {
+    const input = $("#couponInput");
+    $("#couponForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+      applyCoupon(input.value, "submit");
+    });
+    // Validação automática: ao digitar o código completo, o cupom é aplicado sem precisar clicar
+    input.addEventListener("input", function () {
+      setCouponMessage("", "");
+      const code = input.value.replace(/\s+/g, "").toUpperCase();
+      if (COUPONS[code]) applyCoupon(code, "typing");
+    });
+    $("#couponRemove").addEventListener("click", function () {
+      removeCoupon(false);
+      showToast("Cupom removido");
+    });
+    $("#couponLogin").addEventListener("click", function () {
+      closeCart();
+      openAuth("login");
+    });
+  }
+
   /* ---------- 5. RENDERIZAÇÃO DO CARRINHO ---------- */
   const cartItemsEl = $("#cartItems");
   const cartCountEl = $("#cartCount");
@@ -1533,7 +1703,7 @@
             : "";
           return (
             '<div class="cart-item">' +
-              '<img class="cart-item__img" src="' + product.image + '" alt="' + escapeHTML(product.name) + '">' +
+              '<img class="cart-item__img" src="' + productPhoto(product).src + '" alt="' + escapeHTML(product.name) + '">' +
               "<div>" +
                 '<h4 class="cart-item__name">' + escapeHTML(product.name) + "</h4>" +
                 sizeInfo +
@@ -1554,8 +1724,21 @@
         .join("");
     }
 
-    // Totais e frete
+    // Totais, cupom e frete
     cartSubtotalEl.textContent = formatPrice(subtotal);
+    const discount = getDiscount(subtotal);
+    const hasCoupon = cart.length > 0 && appliedCoupon !== null;
+    $("#cartDiscountRow").hidden = !hasCoupon;
+    $("#cartTotalRow").hidden = !hasCoupon;
+    if (hasCoupon) {
+      $("#cartDiscountLabel").textContent = "Desconto (−" + appliedCoupon.percent + "%)";
+      $("#cartDiscount").textContent = "− " + formatPrice(discount);
+      $("#cartTotal").textContent = formatPrice(subtotal - discount);
+    }
+    $("#coupon").hidden = cart.length === 0;
+    $("#couponForm").hidden = appliedCoupon !== null;
+    $("#couponApplied").hidden = appliedCoupon === null;
+    if (appliedCoupon) $("#couponAppliedCode").textContent = appliedCoupon.code;
 
     if (cart.length === 0) {
       cartShippingEl.textContent = "";
@@ -1590,17 +1773,65 @@
       showToast("Carrinho esvaziado");
     });
 
-    // Finalização (simulada nesta versão, sem banco de dados nem pagamento)
-    checkoutBtn.addEventListener("click", function () {
-      if (cart.length === 0) return;
-      const total = formatPrice(getCartSubtotal());
+    // Finalização (simulada nesta versão, sem pagamento). Com cupom, o uso é registrado no Supabase.
+    checkoutBtn.addEventListener("click", async function () {
+      if (cart.length === 0 || couponBusy) return;
+
+      if (appliedCoupon) {
+        if (!sb || !currentUser) {
+          removeCoupon(true);
+          setCouponMessage("error", "Entre na sua conta para usar o cupom.", true);
+          return;
+        }
+        const code = appliedCoupon.code;
+        const uid = currentUser.id;
+        couponBusy = true;
+        checkoutBtn.disabled = true;
+        const label = checkoutBtn.textContent;
+        checkoutBtn.textContent = "Confirmando…";
+        let failure = null;
+        try {
+          // O banco recusa a segunda gravação (UNIQUE user_id + code): é ele quem garante "uma vez por cliente"
+          const result = await sb.from("coupon_redemptions").insert({ code: code });
+          if (result.error) failure = result.error;
+        } catch (error) {
+          failure = error;
+        }
+        couponBusy = false;
+        checkoutBtn.disabled = cart.length === 0;
+        checkoutBtn.textContent = label;
+        if (!currentUser || currentUser.id !== uid) return;
+        if (failure) {
+          if (String(failure.code) === "23505") {
+            removeCoupon(true);
+            setCouponMessage("error", "Você já utilizou este cupom. Ele vale uma única vez por cliente.");
+            showToast("Cupom já utilizado nesta conta");
+          } else {
+            setCouponMessage("error", couponErrorMessage(failure));
+          }
+          return;
+        }
+        const paid = formatPrice(getCartTotal());
+        const off = formatPrice(getDiscount(getCartSubtotal()));
+        removeCoupon(true); // cupom consumido
+        setCouponMessage("", "");
+        alert(
+          "Obrigado pela preferência!\n\n" +
+          "Cupom " + code + " aplicado: desconto de " + off + "\n" +
+          "Total do pedido: " + paid + "\n\n" +
+          "Esta é a primeira versão da loja: a finalização de compra será integrada em breve."
+        );
+        return;
+      }
+
       alert(
         "Obrigado pela preferência!\n\n" +
-        "Total do pedido: " + total + "\n\n" +
+        "Total do pedido: " + formatPrice(getCartTotal()) + "\n\n" +
         "Esta é a primeira versão da loja: a finalização de compra será integrada em breve."
       );
     });
 
+    initCoupon();
     renderCart();
   }
 
@@ -2016,6 +2247,7 @@
     const newId = currentUser ? currentUser.id : null;
 
     if (newId !== previousId) {
+      onCouponUserChange(previousId, currentUser);
       resetProfileState(); // nunca deixa dados de outra pessoa na tela
       // adiado: não chamar o Supabase de dentro do onAuthStateChange evita travar a biblioteca
       if (currentUser) setTimeout(loadProfile, 0);
