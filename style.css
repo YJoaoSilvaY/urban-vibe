@@ -3088,3 +3088,218 @@ body.view-catalog main {
     margin-bottom: 12px;
   }
 }
+
+/* ---------- 15. PAGAMENTO (escolha do método) ---------- */
+.pay__summary {
+  margin: 20px 0;
+  padding: 16px 18px;
+  background: var(--grey-100);
+  border-radius: 14px;
+}
+
+.pay__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 0.95rem;
+  color: var(--grey-700);
+}
+
+.pay__row[hidden] {
+  display: none;
+}
+
+.pay__row strong {
+  color: var(--black);
+  white-space: nowrap;
+}
+
+.pay__row--total {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--grey-300);
+  font-size: 1.05rem;
+  color: var(--black);
+}
+
+.pay__row--total strong {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+}
+
+.pay__methods {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.pay__legend {
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--grey-700);
+}
+
+.pay__option {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.pay__option input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.pay__card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 16px;
+  background: var(--white);
+  border: 1.5px solid var(--grey-300);
+  border-radius: 14px;
+  transition: var(--transition);
+}
+
+.pay__option:hover .pay__card {
+  border-color: var(--black);
+}
+
+.pay__option input:checked + .pay__card {
+  border-color: var(--black);
+  box-shadow: 0 0 0 1.5px var(--black);
+}
+
+.pay__option input:focus-visible + .pay__card {
+  outline: 3px solid var(--black);
+  outline-offset: 3px;
+}
+
+.pay__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--grey-100);
+  color: var(--black);
+}
+
+.pay__option input:checked + .pay__card .pay__icon {
+  background: var(--black);
+  color: var(--white);
+}
+
+.pay__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pay__text strong {
+  font-size: 0.95rem;
+}
+
+.pay__text small {
+  font-size: 0.8rem;
+  color: var(--grey-500);
+}
+
+.pay__detail {
+  margin-bottom: 16px;
+}
+
+.pay__detail[hidden],
+.pay__installments[hidden],
+#payStep[hidden],
+#payDone[hidden] {
+  display: none;
+}
+
+.pay__installments {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pay__installments select {
+  min-height: 48px;
+}
+
+.pay__info,
+.pay__demo {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--grey-500);
+}
+
+.pay__demo {
+  margin: 0 0 20px;
+}
+
+.pay__msg {
+  min-height: 0;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #b3261e;
+}
+
+.pay__msg:empty {
+  display: none;
+}
+
+.pay__back {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--grey-700);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+#payConfirm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .pay__card {
+    padding: 8px 12px;
+    gap: 12px;
+  }
+}
+
+/* Cupom dentro da tela de pagamento */
+.pay .coupon {
+  margin: 22px 0 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.pay .coupon .field__input {
+  background: var(--white);
+}
