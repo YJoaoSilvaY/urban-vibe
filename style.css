@@ -2895,3 +2895,196 @@ body.view-catalog main {
     animation: none;
   }
 }
+
+/* ---------- 14. CUPOM DE DESCONTO NO CARRINHO ---------- */
+.cart__row[hidden],
+.coupon[hidden],
+.coupon__form[hidden],
+.coupon__applied[hidden],
+.coupon__login[hidden] {
+  display: none;
+}
+
+.cart__row--discount {
+  font-size: 0.95rem;
+  color: var(--grey-700);
+}
+
+.cart__row--discount strong {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.cart__row--total {
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 1px solid var(--grey-300);
+}
+
+.coupon {
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--grey-100);
+}
+
+.coupon__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--grey-700);
+}
+
+.coupon__row {
+  display: flex;
+  gap: 8px;
+}
+
+.coupon__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.coupon__input::placeholder {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.coupon__btn {
+  min-height: 48px;
+  padding: 0 22px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--white);
+  background: var(--black);
+  border: 2px solid var(--black);
+  border-radius: var(--radius-btn);
+  transition: var(--transition);
+}
+
+.coupon__btn:hover:not(:disabled) {
+  background: var(--white);
+  color: var(--black);
+}
+
+.coupon__btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.coupon__applied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 8px 0 16px;
+  font-size: 0.88rem;
+  background: var(--white);
+  border: 1.5px solid var(--black);
+  border-radius: 14px;
+}
+
+.coupon__applied strong {
+  letter-spacing: 0.06em;
+}
+
+.coupon__remove,
+.coupon__login {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--black);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.coupon__login {
+  padding: 0;
+}
+
+.coupon__msg {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--grey-500);
+}
+
+.coupon__msg:empty {
+  display: none;
+}
+
+.coupon__msg.is-error {
+  color: #b3261e;
+}
+
+.coupon__msg.is-success {
+  color: var(--grey-700);
+}
+
+.coupon__msg.is-success::before {
+  content: "✓ ";
+  font-weight: 800;
+}
+
+.cart__row--discount strong,
+.cart__row--total strong {
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .coupon {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+  }
+
+  .coupon__label {
+    margin-bottom: 6px;
+  }
+
+  .coupon__input,
+  .coupon__btn {
+    min-height: 44px;
+  }
+
+  .coupon__btn {
+    padding: 0 16px;
+  }
+
+  .coupon__applied {
+    min-height: 44px;
+    padding: 0 4px 0 12px;
+    font-size: 0.8rem;
+  }
+
+  .coupon__applied > span {
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .coupon__remove {
+    padding: 0 10px;
+    white-space: nowrap;
+  }
+
+  .cart__row--total {
+    padding-top: 6px;
+  }
+
+  .cart__note {
+    margin-bottom: 12px;
+  }
+}
