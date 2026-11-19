@@ -388,9 +388,32 @@
     </div>
 
     <div class="cart__footer">
+      <div class="coupon" id="coupon" hidden>
+        <form class="coupon__form" id="couponForm" novalidate>
+          <label class="coupon__label" for="couponInput">Cupom de desconto</label>
+          <div class="coupon__row">
+            <input class="field__input coupon__input" id="couponInput" type="text" placeholder="Digite o cupom" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="30" aria-describedby="couponMsg">
+            <button type="submit" class="coupon__btn" id="couponApply">Aplicar</button>
+          </div>
+        </form>
+        <div class="coupon__applied" id="couponApplied" hidden>
+          <span><strong id="couponAppliedCode"></strong> aplicado</span>
+          <button type="button" class="coupon__remove" id="couponRemove">Remover</button>
+        </div>
+        <p class="coupon__msg" id="couponMsg" role="status" aria-live="polite"></p>
+        <button type="button" class="coupon__login" id="couponLogin" hidden>Entrar na conta</button>
+      </div>
       <div class="cart__row">
         <span>Subtotal</span>
         <strong id="cartSubtotal">R$ 0,00</strong>
+      </div>
+      <div class="cart__row cart__row--discount" id="cartDiscountRow" hidden>
+        <span id="cartDiscountLabel">Desconto</span>
+        <strong id="cartDiscount">- R$ 0,00</strong>
+      </div>
+      <div class="cart__row cart__row--total" id="cartTotalRow" hidden>
+        <span>Total</span>
+        <strong id="cartTotal">R$ 0,00</strong>
       </div>
       <p class="cart__note" id="cartShipping"></p>
       <button class="btn btn--dark btn--block" id="checkoutBtn">Finalizar compra</button>
